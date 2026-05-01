@@ -9,6 +9,7 @@ import {
     integer,
     primaryKey,
 } from 'drizzle-orm/pg-core';
+import { InferSelectModel } from 'drizzle-orm';
 import { userRole, userStatus } from './enums';
 
 // ── Users ──
@@ -30,9 +31,15 @@ export const users = pgTable(
         createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
         updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull().$onUpdate(() => new Date().toISOString()),
         banUntil: timestamp({ mode: 'string' }),
+        // 2FA TOTP
+        totpSecret: text(),
+        totpEnabled: boolean().default(false).notNull(),
+        backupCodes: text(), // JSON array of hashed backup codes
     },
     table => [unique('user_email_unique').on(table.email)]
 );
+
+export type User = InferSelectModel<typeof users>;
 
 // ── Accounts (OAuth providers) ──
 export const accounts = pgTable(

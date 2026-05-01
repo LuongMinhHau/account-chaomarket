@@ -1,0 +1,23 @@
+name: account-chaomarket
+
+services:
+  postgres:
+    container_name: account-chaomarket-database
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: account_chaomarket
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: hau123
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d account_chaomarket"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

@@ -1,0 +1,33 @@
+export interface SidebarTranslations {
+    home: string;
+    brandGoal: string;
+    personalInfo?: string;
+    security?: string;
+    changePassword?: string;
+    twoFactor?: string;
+    notifications?: string;
+    orders?: string;
+    orderHistory?: string;
+    subscriptions?: string;
+    legal?: string;
+    ecosystem?: string;
+    chaoMarketTrading?: string;
+    thuexeChaoMarket?: string;
+    chaoNews?: string;
+    marketData?: string;
+    performanceStatistics?: string;
+    ourSolutions?: string;
+    newsEvents?: string;
+    news?: string;
+    events?: string;
+    community?: string;
+    marketInsights?: string;
+    freeCourses?: string;
+    conferences?: string;
+    videos?: string;
+    images?: string;
+    membersOnly?: string;
+    welcome?: string;
+    announcements?: string;
+    watchlist?: string;
+}

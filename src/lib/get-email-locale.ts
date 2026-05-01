@@ -3,7 +3,7 @@ export type EmailLocale = 'vi' | 'en';
 /**
  * Resolves the user's preferred language for emails.
  * Simplified: Accept-Language header → default 'vi'
- * (No DB lookup — accounts service doesn't have userSetting table)
+ * (No DB lookup — account service doesn't have userSetting table)
  */
 export function getEmailLocale(request?: Request): EmailLocale {
     if (request) {

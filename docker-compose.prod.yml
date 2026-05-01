@@ -1,14 +1,14 @@
 services:
-  chaomarket-accounts:
-    image: minhhauluong/chao-market-accounts:latest
-    container_name: chaomarket-accounts
+  chaomarket-account:
+    image: minhhauluong/chao-market-account:latest
+    container_name: chaomarket-account
     restart: unless-stopped
     ports:
       - "3002:3002"
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://chaomarket:${DB_PASSWORD}@chaomarket-postgres:5432/chaomarket
-      - NEXTAUTH_URL=https://accounts.chaomarket.com
+      - NEXTAUTH_URL=https://account.chaomarket.com
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - COOKIE_DOMAIN=.chaomarket.com
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}

@@ -1,0 +1,89 @@
+export interface AuthTranslations {
+    login: string;
+    signup: string;
+    forgotPassword: string;
+    otpSentToEmail: string;
+    otpVerificationFailed: string;
+    failedToVerifyOtp: string;
+    welcomeBack: string;
+    invalidCredentials: string;
+    loginError: string;
+    signInError: string;
+    noAccountPrompt: string;
+    oauth: {
+        unknownError: string;
+        accountNotLinked: string;
+        accessDenied: string;
+    };
+    createAccountTitle: string;
+    signupSuccessMessage: string;
+    registrationFailed: string;
+    registrationError: string;
+    failedToSendOtp: string;
+    alreadyHaveAccount: string;
+    verifyEmailTitle: string;
+    weHaveSendOtpToYourEmail: string;
+    otpResentSuccess: string;
+    failedToResendOtp: string;
+    didNotReceiveCode: string;
+    resendOtp: string;
+    termsAgreement: {
+        start: string;
+        startAgePrivacy: string;
+        startEndContent: string;
+        startNewLine: string;
+        privacyNotice: string;
+        and: string;
+        termsOfUse: string;
+    };
+    termsNotAccepted: string;
+    resetPassword: {
+        goToLogin: string;
+        sendResetCode: string;
+        updatePassword: string;
+        rememberPassword: string;
+        title: string;
+        setNewPasswordTitle: string;
+        completeTitle: string;
+        emailSubtitle: string;
+        otpSubtitle: string;
+        newPasswordSubtitle: string;
+        completeSubtitle: string;
+        otpSentSuccess: string;
+        requestFailed: string;
+        updateSuccess: string;
+        updateFailed: string;
+        passwordsDoNotMatch: string;
+        otpResentToEmail: string;
+        resendFailed: string;
+    };
+    validation: AuthValidationTranslations;
+}
+
+export interface AuthValidationTranslations {
+    firstNameRequired: string;
+    firstNameInvalid: string;
+    lastNameRequired: string;
+    lastNameInvalid: string;
+    emailInvalid: string;
+    emailRequired: string;
+    passwordTooShort: string;
+    passwordTooLong: string;
+    passwordNeedsUppercase: string;
+    passwordNeedsLowercase: string;
+    passwordNeedsNumber: string;
+    passwordNeedsSpecial: string;
+    confirmPasswordRequired: string;
+    passwordsDoNotMatch: string;
+    passwordRequired: string;
+    genderOtherRequired: string;
+    otherGenderTooLong: string;
+    dobInPast: string;
+    dobRequired: string;
+    genderRequired: string;
+    ageRequirement: string;
+    phoneNumberRequired: string;
+    phoneInvalid: string;
+    phoneMinLength: string;
+    phoneMaxLength: string;
+}

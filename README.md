@@ -1,6 +1,6 @@
-# Chào Market Accounts
+# Chào Market Account
 
-Centralized authentication service for the Chào Market ecosystem at `accounts.chaomarket.com`.
+Centralized authentication service for the Chào Market ecosystem at `account.chaomarket.com`.
 
 ## Architecture
 
@@ -8,7 +8,7 @@ Centralized authentication service for the Chào Market ecosystem at `accounts.c
 - **Auth**: NextAuth v4 (JWT strategy, `.chaomarket.com` cookie domain)
 - **Database**: Shared PostgreSQL with ChaoMarket Web (Drizzle ORM)
 - **Email**: Brevo transactional API
-- **Port**: 3002
+- **Port**: 3001
 
 ## Features
 
@@ -23,7 +23,7 @@ Centralized authentication service for the Chào Market ecosystem at `accounts.c
 
 ```bash
 pnpm install
-pnpm dev        # http://localhost:3002
+pnpm dev        # http://localhost:3001
 ```
 
 ## Environment
@@ -42,8 +42,8 @@ Copy `.env.example` → `.env.local` and fill in:
 ## Deployment
 
 ```bash
-docker build -t minhhauluong/chao-market-accounts .
-docker push minhhauluong/chao-market-accounts:latest
+docker build -t minhhauluong/chao-market-account .
+docker push minhhauluong/chao-market-account:latest
 ```
 
 Or via GitHub Actions on push to `main`.

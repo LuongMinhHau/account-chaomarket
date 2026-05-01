@@ -1,305 +1,389 @@
 'use client';
 
-import { Suspense, useEffect, useState, useRef } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Eye, EyeOff } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { loginSchema, type LoginFormData } from '@/schema/auth-schema';
+import { Button } from '@/components/ui/button';
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '@/components/ui/form';
+import { FloatingLabelInput } from '@/components/ui/floating-input';
+import {
+    InputOTP,
+    InputOTPGroup,
+    InputOTPSlot,
+} from '@/components/ui/input-otp';
+import LoadingSpinner from '@/components/loading-spinner';
+import TabAuthMode from '@/app/auth/components/tab-auth-mode';
+import SocialLogin from '@/app/auth/components/social-login';
+import { useI18n } from '@/context/i18n/context';
 
 export default function LoginPageWrapper() {
     return (
-        <Suspense fallback={<div className="auth-container"><div className="auth-card"><div className="spinner" style={{ margin: '2rem auto' }} /></div></div>}>
+        <Suspense fallback={<div className="spinner" style={{ margin: '2rem auto' }} />}>
             <LoginPage />
         </Suspense>
     );
 }
 
+// Email verification step (when user hasn't verified email yet)
+function EmailVerificationStep({
+    email,
+    onVerificationComplete,
+}: {
+    email: string;
+    onVerificationComplete: () => void;
+}) {
+    const [otp, setOtp] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const { t } = useI18n();
+
+    const handleVerifyOtp = async () => {
+        if (otp.length !== 6) return;
+
+        setLoading(true);
+        setError('');
+
+        try {
+            const response = await fetch('/api/auth/otp', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, otp }),
+            });
+
+            if (response.ok) {
+                onVerificationComplete();
+            } else {
+                setError(t('auth.otpVerificationFailed'));
+            }
+        } catch {
+            setError(t('auth.failedToVerifyOtp'));
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="space-y-8 flex flex-col justify-end h-[15.375rem]">
+            <div className="w-full">
+                <p className="text-sm dark:text-white text-[var(--brand-grey-foreground)] font-light mb-4">
+                    {t('auth.otpSentToEmail')}{' '}
+                    <span className="font-bold text-black dark:text-white">
+                        {email}
+                    </span>
+                </p>
+
+                <div className="flex flex-col items-center w-full">
+                    <InputOTP maxLength={6} value={otp} onChange={value => setOtp(value)}>
+                        <InputOTPGroup className={cn(
+                            'flex gap-4 mx-auto text-brand-text',
+                            '[&>div[data-slot=input-otp-slot]]:rounded-lg',
+                            '[&>div[data-slot=input-otp-slot]]:outline-0',
+                            'dark:[&>div[data-slot=input-otp-slot]]:ring-[var(--brand-color)]',
+                            '[&>div[data-slot=input-otp-slot]]:size-12',
+                            '[&>div[data-slot=input-otp-slot]]:text-xl',
+                            '[&>div[data-slot=input-otp-slot]]:border-2',
+                        )}>
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                            <InputOTPSlot index={2} />
+                            <InputOTPSlot index={3} />
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                    </InputOTP>
+                </div>
+            </div>
+
+            {error && (
+                <div className="flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg border border-red-500/30 dark:border-red-400/20 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="size-4 shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.06-1.06.75.75 0 011.06 1.06zM10 8a.75.75 0 01.75.75v5a.75.75 0 01-1.5 0v-5A.75.75 0 0110 8z" clipRule="evenodd" /></svg>
+                    {error}
+                </div>
+            )}
+
+            <div className="flex space-x-2 w-full">
+                <Button
+                    onClick={handleVerifyOtp}
+                    disabled={loading}
+                    className={cn(
+                        'flex-1 text-black min-h-[40px] bg-[var(--brand-color)] cursor-pointer rounded-3xl font-bold py-2 px-4 my-2',
+                        'hover:bg-[var(--brand-color-foreground)] transition-colors! duration-300 ease-in-out',
+                        loading ? 'disabled:bg-transparent disabled:p-0' : ''
+                    )}
+                >
+                    {loading ? <LoadingSpinner /> : t('common.continue')}
+                </Button>
+            </div>
+        </div>
+    );
+}
+
+// Main login component
 function LoginPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [needsOtp, setNeedsOtp] = useState(false);
-    const [otp, setOtp] = useState(['', '', '', '', '', '']);
-    const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+    const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
+    const [loginData, setLoginData] = useState<{ email: string; password: string } | null>(null);
+    const [showPassword, setShowPassword] = useState(false);
+    const { t } = useI18n();
 
-    // Clear error on input change
+    const form = useForm<LoginFormData>({
+        resolver: zodResolver(loginSchema),
+        mode: 'onSubmit',
+        reValidateMode: 'onSubmit',
+        defaultValues: {
+            email: '',
+            password: '',
+        },
+    });
+
+    // Clear error when form fields change
     useEffect(() => {
-        if (error) setError('');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [email, password]);
+        const subscription = form.watch(() => {
+            if (error) setError('');
+        });
+        return () => subscription.unsubscribe();
+    }, [form, error]);
 
-    // Check for OAuth errors
-    useEffect(() => {
-        const err = searchParams.get('error');
-        if (err === 'OAuthAccountNotLinked')
-            setError('Email này đã liên kết với phương thức đăng nhập khác.');
-        else if (err === 'CredentialsSignin')
-            setError('Thông tin đăng nhập không hợp lệ.');
-        else if (err === 'AccessDenied')
-            setError('Truy cập bị từ chối.');
-    }, [searchParams]);
-
-    const handleCredentialsLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!email || !password) return;
-
+    // Handle credentials login
+    const handleCredentialsLogin = async (data: LoginFormData) => {
         setLoading(true);
         setError('');
 
         try {
-            // Check email verification status
-            const verifyRes = await fetch(`/api/user/verify?email=${encodeURIComponent(email)}`);
-            const verifyData = await verifyRes.json();
+            const response = await fetch('/api/user/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: data.email }),
+            });
 
-            if (verifyRes.ok && verifyData.data?.emailVerified) {
-                // Email verified → login directly
-                const result = await signIn('credentials', {
-                    email,
-                    password,
+            if (!response.ok) {
+                const result = await response.json();
+                throw new Error(result.message || t('auth.invalidCredentials'));
+            }
+
+            const result = await response.json();
+
+            if (result.data?.emailVerified) {
+                // Email verified — proceed with login
+                const signInResult = await signIn('credentials', {
+                    email: data.email,
+                    password: data.password,
                     redirect: false,
                 });
 
-                if (!result?.ok) {
-                    setError('Thông tin đăng nhập không hợp lệ.');
+                if (!signInResult?.ok) {
+                    setError(t('auth.invalidCredentials'));
                 } else {
-                    const callbackUrl = searchParams.get('callbackUrl') || 'https://finance.chaomarket.com/home';
-                    window.location.replace(callbackUrl);
-                    return;
+                    const callbackUrl = searchParams.get('callbackUrl') || '/account';
+                    if (callbackUrl.startsWith('http')) {
+                        window.location.replace(callbackUrl);
+                        return;
+                    } else {
+                        router.push(callbackUrl);
+                        return;
+                    }
                 }
             } else {
-                // Email not verified → send OTP
+                // Not verified — send OTP
+                setLoginData(data);
                 await fetch('/api/auth/otp', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email }),
+                    body: JSON.stringify({ email: data.email, type: 'email' }),
                 });
-                setNeedsOtp(true);
+                setEmailVerified(false);
             }
-        } catch {
-            setError('Đã xảy ra lỗi khi đăng nhập.');
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Đã xảy ra lỗi.';
+            setError(message);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleOtpChange = (index: number, value: string) => {
-        if (!/^\d*$/.test(value)) return;
-        const newOtp = [...otp];
-        newOtp[index] = value.slice(-1);
-        setOtp(newOtp);
-
-        if (value && index < 5) {
-            otpRefs.current[index + 1]?.focus();
-        }
-    };
-
-    const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
-        if (e.key === 'Backspace' && !otp[index] && index > 0) {
-            otpRefs.current[index - 1]?.focus();
-        }
-    };
-
-    const handleOtpVerify = async () => {
-        const code = otp.join('');
-        if (code.length !== 6) return;
+    // Handle successful OTP verification
+    const handleOtpVerificationComplete = async () => {
+        if (!loginData) return;
 
         setLoading(true);
         setError('');
 
         try {
-            const res = await fetch('/api/auth/otp', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, otp: code }),
+            const result = await signIn('credentials', {
+                email: loginData.email,
+                password: loginData.password,
+                redirect: false,
             });
 
-            if (res.ok) {
-                // OTP verified, now login
-                const result = await signIn('credentials', {
-                    email,
-                    password,
-                    redirect: false,
-                });
-
-                if (result?.ok) {
-                    const callbackUrl = searchParams.get('callbackUrl') || 'https://finance.chaomarket.com/home';
-                    window.location.replace(callbackUrl);
+            if (result?.error) {
+                setError(t('auth.invalidCredentials'));
+                setEmailVerified(true);
+            } else {
+                const cb = searchParams.get('callbackUrl') || '/account';
+                if (cb.startsWith('http')) {
+                    window.location.replace(cb);
                     return;
                 } else {
-                    setError('Thông tin đăng nhập không hợp lệ.');
-                    setNeedsOtp(false);
+                    router.push(cb);
+                    return;
                 }
-            } else {
-                setError('Mã OTP không hợp lệ hoặc đã hết hạn.');
             }
         } catch {
-            setError('Xác minh OTP thất bại.');
+            setError(t('auth.loginError'));
         } finally {
             setLoading(false);
         }
     };
 
-    const handleGoogleLogin = () => {
-        const callbackUrl = searchParams.get('callbackUrl') || 'https://finance.chaomarket.com/home';
-        signIn('google', { callbackUrl });
-    };
-
-    const signupUrl = `/auth/sign-up${searchParams.get('callbackUrl') ? `?callbackUrl=${encodeURIComponent(searchParams.get('callbackUrl')!)}` : ''}`;
+    // Check for OAuth errors
+    useEffect(() => {
+        const errorParam = searchParams.get('error');
+        if (errorParam) {
+            switch (errorParam) {
+                case 'OAuthAccountNotLinked':
+                    setError(t('auth.oauth.accountNotLinked'));
+                    break;
+                case 'CredentialsSignin':
+                    setError(t('auth.invalidCredentials'));
+                    break;
+                default:
+                    setError(t('auth.oauth.unknownError'));
+            }
+        }
+    }, [searchParams]);
 
     return (
-        <div className="auth-container">
-            <div className="auth-card">
-                {/* Brand Header */}
-                <div className="brand-header">
-                    <div className="brand-logo">C</div>
-                    <div>
-                        <div className="brand-name">Chào Market</div>
-                        <div className="brand-slogan">Quản Lý Rủi Ro Của Bạn</div>
-                    </div>
-                </div>
-
-                {/* Tab Mode */}
-                <div className="auth-tabs">
-                    <span className="auth-tab active">Đăng nhập</span>
-                    <Link href={signupUrl} className="auth-tab">Đăng ký</Link>
-                </div>
-
-                <h1 className="auth-title">Chào mừng trở lại!</h1>
-
-                {/* Error */}
+        <div className="flex flex-col w-full h-full">
+            <div className="h-full w-full flex flex-col gap-10 justify-center pt-8">
                 {error && (
-                    <div className="auth-error">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
-                        </svg>
+                    <div className="flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg border border-red-500/30 dark:border-red-400/20 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="size-4 shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.06-1.06.75.75 0 011.06 1.06zM10 8a.75.75 0 01.75.75v5a.75.75 0 01-1.5 0v-5A.75.75 0 0110 8z" clipRule="evenodd" /></svg>
                         <span>{error}</span>
                     </div>
                 )}
 
-                {needsOtp ? (
-                    /* OTP Verification */
-                    <div>
-                        <p style={{ fontSize: '0.875rem', color: 'var(--brand-text-muted)', marginBottom: '0.5rem' }}>
-                            Mã xác minh đã gửi đến <strong style={{ color: 'var(--brand-text)' }}>{email}</strong>
-                        </p>
+                <TabAuthMode />
+                <h2 className="mt-2 text-[20px] font-extrabold text-black/90 dark:text-brand-text">
+                    {t('auth.welcomeBack')}
+                </h2>
 
-                        <div className="otp-container">
-                            {otp.map((digit, i) => (
-                                <input
-                                    key={i}
-                                    ref={el => { otpRefs.current[i] = el; }}
-                                    type="text"
-                                    inputMode="numeric"
-                                    maxLength={1}
-                                    value={digit}
-                                    onChange={e => handleOtpChange(i, e.target.value)}
-                                    onKeyDown={e => handleOtpKeyDown(i, e)}
-                                    className="otp-digit"
-                                    autoFocus={i === 0}
-                                />
-                            ))}
-                        </div>
-
-                        <p style={{ fontSize: '0.75rem', color: 'var(--brand-text-muted)', textAlign: 'center', marginBottom: '1rem' }}>
-                            Mã hết hạn sau 10 phút
-                        </p>
-
-                        <button
-                            onClick={handleOtpVerify}
-                            disabled={loading || otp.join('').length !== 6}
-                            className="auth-btn-primary"
-                        >
-                            {loading ? <span className="spinner" /> : 'Xác minh'}
-                        </button>
-                    </div>
+                {emailVerified === false && loginData ? (
+                    <EmailVerificationStep
+                        email={loginData.email}
+                        onVerificationComplete={handleOtpVerificationComplete}
+                    />
                 ) : (
-                    /* Login Form */
-                    <form onSubmit={handleCredentialsLogin}>
-                        <div className="auth-input-group">
-                            <label className="auth-label" htmlFor="email">Email</label>
-                            <input
-                                id="email"
-                                type="email"
-                                className="auth-input"
-                                placeholder="name@example.com"
-                                value={email}
-                                onChange={e => setEmail(e.target.value)}
-                                required
-                                autoFocus
-                            />
-                        </div>
-
-                        <div className="auth-input-group">
-                            <label className="auth-label" htmlFor="password">Mật khẩu</label>
-                            <div className="auth-input-wrapper">
-                                <input
-                                    id="password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    className="auth-input"
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={e => setPassword(e.target.value)}
-                                    required
-                                />
-                                <button
-                                    type="button"
-                                    className="toggle-password"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    tabIndex={-1}
-                                >
-                                    {showPassword ? (
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
-                                    ) : (
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-
-                        <button type="button" className="auth-forgot" onClick={() => router.push('/auth/reset-password')}>
-                            Quên mật khẩu?
-                        </button>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="auth-btn-primary"
-                            style={{ marginTop: '1rem' }}
+                    <Form {...form}>
+                        <form
+                            onSubmit={form.handleSubmit(handleCredentialsLogin)}
+                            className="h-fit min-h-[15.375rem] space-y-4"
                         >
-                            {loading ? <span className="spinner" /> : 'Đăng nhập'}
-                        </button>
-                    </form>
+                            <FormField
+                                control={form.control}
+                                name="email"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <FloatingLabelInput
+                                                label={t('common.emailAddress')}
+                                                {...field}
+                                                className="app-text-input"
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="password"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <FloatingLabelInput
+                                                type={showPassword ? 'text' : 'password'}
+                                                label={
+                                                    <span className="inline-flex items-center gap-1">
+                                                        {t('common.password')}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowPassword(!showPassword)}
+                                                            className="pointer-events-auto cursor-pointer inline-flex items-center"
+                                                        >
+                                                            {showPassword ? (
+                                                                <Eye className="h-4 w-4" />
+                                                            ) : (
+                                                                <EyeOff className="h-4 w-4" />
+                                                            )}
+                                                        </button>
+                                                    </span>
+                                                }
+                                                className="app-text-input"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormItem>
+                                <FormLabel
+                                    className="dark:text-white/50 dark:hover:text-white text-black/50 hover:text-black hover:underline transition-all! duration-300 ease-in-out cursor-pointer"
+                                    onClick={() => router.push('/auth/reset-password')}
+                                >
+                                    {t('auth.forgotPassword')}
+                                </FormLabel>
+                            </FormItem>
+
+                            <Button
+                                type="submit"
+                                disabled={loading}
+                                className={cn(
+                                    'w-full my-2 flex-1 bg-[var(--brand-color)] cursor-pointer text-black font-bold py-3',
+                                    'px-6 rounded-3xl disabled:p-0 hover:bg-[var(--brand-color-foreground)]',
+                                    'transition-colors! duration-300 ease-in-out text-[16px]!',
+                                    'border border-black/20 dark:border-[var(--brand-grey-foreground)]/30 h-12',
+                                    loading ? 'disabled:bg-transparent' : ''
+                                )}
+                            >
+                                {loading ? <LoadingSpinner /> : t('auth.login')}
+                            </Button>
+                        </form>
+                    </Form>
                 )}
 
-                {/* Social Login */}
-                {!needsOtp && (
-                    <>
-                        <div className="auth-divider">
-                            <span>hoặc tiếp tục với</span>
-                        </div>
-
-                        <button onClick={handleGoogleLogin} className="auth-btn-social">
-                            <svg width="20" height="20" viewBox="0 0 24 24">
-                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
-                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                            </svg>
-                            Đăng nhập với Google
-                        </button>
-                    </>
-                )}
-
-                {/* Footer */}
-                <div className="auth-footer">
-                    Chưa có tài khoản?{' '}
-                    <Link href={signupUrl}>Đăng ký ngay</Link>
+                <div className="text-center text-brand-text font-medium flex flex-col gap-2 w-full">
+                    <SocialLogin />
+                    <div className="text-[18px] font-medium flex gap-2 justify-center items-center">
+                        {t('auth.noAccountPrompt')}{' '}
+                        <Link
+                            href={`/auth/sign-up${searchParams.get('callbackUrl') ? `?callbackUrl=${encodeURIComponent(searchParams.get('callbackUrl')!)}` : ''}`}
+                            className="dark:text-[var(--brand-color)] text-black font-bold hover:font-extrabold dark:hover:text-[var(--brand-color-foreground)] transition-all! duration-300 ease-in-out"
+                        >
+                            {t('auth.signup')}
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>
     );
 }
+

@@ -6,7 +6,7 @@
 
 import type { EmailLocale } from '@/lib/get-email-locale';
 
-const LOGO_URL = 'https://finance.chaomarket.com/img/brand-logo.svg';
+const LOGO_URL = 'https://cdn-account.chaomarket.com/brand/logo.png';
 
 // ── Request metadata for "When and where" section ──
 export interface RequestMeta {
@@ -19,7 +19,7 @@ export interface RequestMeta {
 // ── Translations ──
 const t = {
     vi: {
-        slogan: 'Quản Lý Rủi Ro Của Bạn',
+        slogan: 'Quản Lý Tài Khoản Của Bạn',
         otpExpiry: 'Mã hết hạn sau 10 phút.',
         whenWhere: 'Thời gian và vị trí thực hiện:',
         metaDate: 'Ngày:',
@@ -30,56 +30,56 @@ const t = {
             'Nếu bạn không thực hiện hành động này, hãy cho chúng tôi biết bằng cách liên hệ support. Vì sự an toàn của bạn, chúng tôi yêu cầu bạn đặt lại mật khẩu.',
         otpVerify: {
             title: 'Xác minh tài khoản của bạn',
-            greeting: (name?: string) => (name ? `${name},` : 'Xin chào,'),
+            greeting: (name?: string) => (name ? `Xin chào ${name},` : 'Xin chào,'),
             body: 'Đây là mã xác minh để hoàn tất đăng ký tài khoản của bạn:',
             subject: 'Chào Market - Mã xác minh tài khoản',
         },
         emailVerify: {
             title: 'Xác minh email của bạn',
-            greeting: (name?: string) => (name ? `${name},` : 'Xin chào,'),
+            greeting: (name?: string) => (name ? `Xin chào ${name},` : 'Xin chào,'),
             body: 'Tài khoản của bạn chưa được xác minh. Vui lòng sử dụng mã dưới đây để xác minh email:',
             subject: 'Chào Market - Xác minh email',
         },
         resetPassword: {
             title: 'Đặt lại mật khẩu của bạn',
-            greeting: (name?: string) => (name ? `${name},` : 'Xin chào,'),
+            greeting: (name?: string) => (name ? `Xin chào ${name},` : 'Xin chào,'),
             body: 'Bạn đã yêu cầu đặt lại mật khẩu. Đây là mã OTP để đặt lại mật khẩu:',
             subject: 'Chào Market - Đặt lại mật khẩu',
         },
         changePassword: {
             title: 'Xác nhận đổi mật khẩu',
-            greeting: (name?: string) => (name ? `${name},` : 'Xin chào,'),
+            greeting: (name?: string) => (name ? `Xin chào ${name},` : 'Xin chào,'),
             body: 'Bạn đang thay đổi mật khẩu tài khoản. Dùng mã dưới đây để xác nhận thay đổi:',
             subject: 'Chào Market - Xác nhận đổi mật khẩu',
         },
         editProfile: {
             title: 'Xác nhận thay đổi thông tin cá nhân',
-            greeting: (name?: string) => (name ? `${name},` : 'Xin chào,'),
+            greeting: (name?: string) => (name ? `Xin chào ${name},` : 'Xin chào,'),
             body: 'Bạn đang cập nhật thông tin cá nhân. Dùng mã dưới đây để xác nhận thay đổi:',
             subject: 'Chào Market - Xác nhận thay đổi thông tin',
         },
         passwordChanged: {
             title: 'Mật khẩu đã được thay đổi',
-            greeting: (name?: string) => (name ? `${name},` : 'Xin chào,'),
+            greeting: (name?: string) => (name ? `Xin chào ${name},` : 'Xin chào,'),
             body: 'Mật khẩu tài khoản của bạn đã được thay đổi thành công.',
             body2: 'Nếu bạn không thực hiện thay đổi này, vui lòng liên hệ bộ phận hỗ trợ ngay lập tức và đặt lại mật khẩu của bạn.',
             subject: 'Chào Market - Mật khẩu đã thay đổi',
         },
         changeEmailOld: {
             title: 'Xác nhận yêu cầu đổi email',
-            greeting: (name?: string) => (name ? `${name},` : 'Xin chào,'),
+            greeting: (name?: string) => (name ? `Xin chào ${name},` : 'Xin chào,'),
             body: 'Chúng tôi nhận được yêu cầu thay đổi địa chỉ email của tài khoản bạn. Dùng mã dưới đây để xác nhận yêu cầu:',
             subject: 'Chào Market - Xác nhận đổi email',
         },
         changeEmailNew: {
             title: 'Xác minh địa chỉ email mới',
-            greeting: (name?: string) => (name ? `${name},` : 'Xin chào,'),
+            greeting: (name?: string) => (name ? `Xin chào ${name},` : 'Xin chào,'),
             body: 'Địa chỉ email này được yêu cầu làm email mới cho tài khoản Chào Market. Dùng mã dưới đây để xác minh:',
             subject: 'Chào Market - Xác minh email mới',
         },
         consultationConfirmation: {
             title: 'Xác nhận đăng ký tư vấn',
-            greeting: (name?: string) => (name ? `${name},` : 'Xin chào,'),
+            greeting: (name?: string) => (name ? `Xin chào ${name},` : 'Xin chào,'),
             body: 'Chúng tôi đã nhận được yêu cầu tư vấn của bạn với các gói sản phẩm sau:',
             solutionsLabel: 'Gói sản phẩm đã chọn:',
             submittedAtLabel: 'Thời gian đăng ký:',
@@ -96,7 +96,7 @@ const t = {
                     : status === 'cancelled'
                       ? 'Yêu cầu tư vấn đã bị hủy'
                       : 'Cập nhật yêu cầu tư vấn',
-            greeting: (name?: string) => (name ? `${name},` : 'Xin chào,'),
+            greeting: (name?: string) => (name ? `Xin chào ${name},` : 'Xin chào,'),
             bodyCompleted:
                 'Yêu cầu tư vấn của bạn đã được xử lý thành công. Đội ngũ chúng tôi sẽ liên hệ với bạn theo thông tin đã đăng ký.',
             bodyCancelled:
@@ -111,7 +111,7 @@ const t = {
         },
         paymentConfirmation: {
             title: 'Xác nhận thanh toán thành công',
-            greeting: (name?: string) => (name ? `${name},` : 'Xin chào,'),
+            greeting: (name?: string) => (name ? `Xin chào ${name},` : 'Xin chào,'),
             body: 'Thanh toán của bạn đã được xử lý thành công. Dưới đây là chi tiết đơn hàng:',
             orderCodeLabel: 'Mã đơn hàng:',
             itemsLabel: 'Sản phẩm đã mua:',
@@ -146,7 +146,7 @@ const t = {
         },
     },
     en: {
-        slogan: 'Manage Your Risks',
+        slogan: 'Manage Your Account',
         otpExpiry: 'This code expires in 10 minutes.',
         whenWhere: 'When and where it happened:',
         metaDate: 'Date:',
@@ -157,56 +157,56 @@ const t = {
             "If you didn't take this action, let us know by contacting support. For your security, we'll require that you reset your password.",
         otpVerify: {
             title: 'Verify your account',
-            greeting: (name?: string) => (name ? `${name},` : 'Hi there,'),
+            greeting: (name?: string) => (name ? `Hi ${name},` : 'Hi there,'),
             body: 'Here is your verification code to complete your account registration:',
             subject: 'Chào Market - Account Verification Code',
         },
         emailVerify: {
             title: 'Verify your email',
-            greeting: (name?: string) => (name ? `${name},` : 'Hi there,'),
+            greeting: (name?: string) => (name ? `Hi ${name},` : 'Hi there,'),
             body: 'Your account has not been verified. Please use the code below to verify your email:',
             subject: 'Chào Market - Email Verification',
         },
         resetPassword: {
             title: 'Reset your password',
-            greeting: (name?: string) => (name ? `${name},` : 'Hi there,'),
+            greeting: (name?: string) => (name ? `Hi ${name},` : 'Hi there,'),
             body: 'You requested a password reset. Here is your OTP code to reset your password:',
             subject: 'Chào Market - Password Reset',
         },
         changePassword: {
             title: 'Confirm password change',
-            greeting: (name?: string) => (name ? `${name},` : 'Hi there,'),
+            greeting: (name?: string) => (name ? `Hi ${name},` : 'Hi there,'),
             body: 'You are changing your account password. Use the code below to confirm this change:',
             subject: 'Chào Market - Confirm Password Change',
         },
         editProfile: {
             title: 'Confirm profile update',
-            greeting: (name?: string) => (name ? `${name},` : 'Hi there,'),
+            greeting: (name?: string) => (name ? `Hi ${name},` : 'Hi there,'),
             body: 'You are updating your personal information. Use the code below to confirm this change:',
             subject: 'Chào Market - Confirm Profile Update',
         },
         passwordChanged: {
             title: 'Your password has been changed',
-            greeting: (name?: string) => (name ? `${name},` : 'Hi there,'),
+            greeting: (name?: string) => (name ? `Hi ${name},` : 'Hi there,'),
             body: 'Your account password has been changed successfully.',
             body2: 'If you did not make this change, please contact our support team immediately and reset your password.',
             subject: 'Chào Market - Password Changed',
         },
         changeEmailOld: {
             title: 'Confirm email change request',
-            greeting: (name?: string) => (name ? `${name},` : 'Hi there,'),
+            greeting: (name?: string) => (name ? `Hi ${name},` : 'Hi there,'),
             body: 'We received a request to change the email address on your account. Use the code below to confirm this request:',
             subject: 'Chào Market - Confirm Email Change',
         },
         changeEmailNew: {
             title: 'Verify your new email address',
-            greeting: (name?: string) => (name ? `${name},` : 'Hi there,'),
+            greeting: (name?: string) => (name ? `Hi ${name},` : 'Hi there,'),
             body: 'This email address has been requested as the new email for a Chào Market account. Use the code below to verify:',
             subject: 'Chào Market - Verify New Email',
         },
         consultationConfirmation: {
             title: 'Consultation Registration Confirmed',
-            greeting: (name?: string) => (name ? `${name},` : 'Hi there,'),
+            greeting: (name?: string) => (name ? `Hi ${name},` : 'Hi there,'),
             body: 'We have received your consultation request with the following solutions:',
             solutionsLabel: 'Selected Solutions:',
             submittedAtLabel: 'Submitted at:',
@@ -223,7 +223,7 @@ const t = {
                     : status === 'cancelled'
                       ? 'Consultation Request Cancelled'
                       : 'Consultation Request Update',
-            greeting: (name?: string) => (name ? `${name},` : 'Hi there,'),
+            greeting: (name?: string) => (name ? `Hi ${name},` : 'Hi there,'),
             bodyCompleted:
                 'Your consultation request has been processed successfully. Our team will contact you based on your registered information.',
             bodyCancelled:
@@ -238,7 +238,7 @@ const t = {
         },
         paymentConfirmation: {
             title: 'Payment Confirmation',
-            greeting: (name?: string) => (name ? `${name},` : 'Hi there,'),
+            greeting: (name?: string) => (name ? `Hi ${name},` : 'Hi there,'),
             body: 'Your payment has been processed successfully. Here are your order details:',
             orderCodeLabel: 'Order Code:',
             itemsLabel: 'Purchased Items:',
@@ -346,10 +346,10 @@ function baseLayout(
     const slogan = t[locale].slogan;
     const noReplyNotice = noReply
         ? `<div style="border-top:1px solid #d9d9d9;padding-top:12px;margin-top:20px;">
-        <p style="color:#cc0000;font-size:12px;font-weight:500;line-height:1.6;margin:0;text-align:center;">${
+        <p style="color:#999;font-size:12px;font-weight:400;line-height:1.6;margin:0;text-align:center;">${
             locale === 'vi'
-                ? 'Đây là email tự động, vui lòng không trả lời. Nếu cần hỗ trợ, liên hệ <a href="mailto:support@chaomarket.com" style="color:#0073b1;text-decoration:none;">support@chaomarket.com</a>'
-                : 'This is an automated email. Please do not reply. For assistance, contact <a href="mailto:support@chaomarket.com" style="color:#0073b1;text-decoration:none;">support@chaomarket.com</a>'
+                ? 'Đây là email tự động, vui lòng không trả lời. Nếu cần hỗ trợ, liên hệ <a href="mailto:support@chaomarket.com" style="color:#666;font-weight:600;text-decoration:underline;">support@chaomarket.com</a>'
+                : 'This is an automated email. Please do not reply. For assistance, contact <a href="mailto:support@chaomarket.com" style="color:#666;font-weight:600;text-decoration:underline;">support@chaomarket.com</a>'
         }</p>
       </div>`
         : '';
@@ -367,18 +367,18 @@ function baseLayout(
       <td align="center" style="padding:24px 16px;">
         <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
 
-          <!-- HEADER BAR (Dark sidebar theme) -->
+          <!-- HEADER BAR (Yellow brand theme) -->
           <tr>
-            <td style="background-color:#262626;padding:20px 24px;border-radius:8px 8px 0 0;border:1px solid #3a3a3a;border-bottom:none;">
+            <td style="background-color:#FFE400;padding:20px 24px;border-radius:8px 8px 0 0;border:1px solid #e0ce00;border-bottom:none;">
               <table cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="width:48px;height:48px;vertical-align:middle;">
-                    <img src="${LOGO_URL}" alt="C" width="48" height="48" style="display:block;border-radius:8px;border:1px solid rgba(255,255,255,0.15);" />
+                    <img src="${LOGO_URL}" alt="C" width="48" height="48" style="display:block;border-radius:8px;border:1px solid #1a1a1a;" />
                   </td>
                   <td style="padding-left:14px;vertical-align:middle;">
-                    <span style="font-size:22px;font-weight:700;color:#FFE400;letter-spacing:-0.3px;">Chào Market</span>
+                    <span style="font-size:22px;font-weight:700;color:#1a1a1a;letter-spacing:-0.3px;">Chào Market</span>
                     <br/>
-                    <span style="font-size:14px;font-weight:500;color:#d4d4d4;letter-spacing:0.3px;">${slogan}</span>
+                    <span style="font-size:14px;font-weight:500;color:#333333;letter-spacing:0.3px;">${slogan}</span>
                   </td>
                 </tr>
               </table>
@@ -403,7 +403,7 @@ function baseLayout(
           <tr>
             <td style="padding:20px 0 0;">
               <p style="color:#86888a;font-size:12px;line-height:1.6;margin:0;text-align:center;">
-                © ${year} Chào Market · <a href="https://finance.chaomarket.com" style="color:#86888a;text-decoration:none;">chaomarket.com</a>
+                © ${year} Chào Market · <a href="https://trading.chaomarket.com" style="color:#86888a;text-decoration:none;">chaomarket.com</a>
               </p>
             </td>
           </tr>
@@ -418,8 +418,8 @@ function baseLayout(
 
 function otpBlock(otpCode: string, locale: EmailLocale): string {
     return `
-      <div style="background-color:#f8f8f8;border:1px solid #999;border-radius:8px;padding:20px;text-align:center;margin:20px 0 16px;">
-        <span style="font-size:32px;font-weight:700;letter-spacing:8px;color:#1a1a1a;font-family:'Courier New',monospace;">${otpCode}</span>
+      <div style="background-color:transparent;border:2px solid #FFE400;border-radius:16px;padding:22px 28px;text-align:center;margin:20px 0 16px;">
+        <span style="font-size:34px;font-weight:700;letter-spacing:10px;color:#1a1a1a;font-family:'Courier New',monospace;">${otpCode}</span>
       </div>
       <p style="color:#666;font-size:13px;text-align:center;margin:0 0 8px;">${t[locale].otpExpiry}</p>
     `;
@@ -666,7 +666,7 @@ export function welcomeEmail(
     const featuresList = tr.features
         .map(
             f =>
-                `<li style="color:#1a1a1a;font-size:15px;line-height:2;border-left:3px solid #FFE400;padding-left:10px;margin-bottom:4px;list-style:none;">${f}</li>`
+                `<li style="color:#1a1a1a;font-size:15px;line-height:2;border-left:3px solid #1a1a1a;padding-left:10px;margin-bottom:4px;list-style:none;">${f}</li>`
         )
         .join('');
 
@@ -683,7 +683,7 @@ export function welcomeEmail(
         </ul>
       </div>
       <div style="text-align:center;margin:24px 0;">
-        <a href="https://finance.chaomarket.com" style="display:inline-block;background-color:#FFE400;color:#1a1a1a;font-size:14px;font-weight:700;padding:10px 24px;border-radius:6px;text-decoration:none;letter-spacing:0.3px;border:1px solid #999;">${tr.cta}</a>
+        <a href="https://trading.chaomarket.com" style="display:inline-block;background-color:#FFE400;color:#1a1a1a;font-size:14px;font-weight:700;padding:10px 24px;border-radius:6px;text-decoration:none;letter-spacing:0.3px;border:1px solid #999;">${tr.cta}</a>
       </div>
       <p style="color:#333;font-size:15px;line-height:1.6;margin:0;">${tr.closing}</p>
     `,
@@ -773,7 +773,7 @@ export function paymentConfirmationEmail(
 
         licenseSection = `
       <div style="background-color:#faf8f3;border:1px solid #999;border-radius:8px;padding:16px 20px;margin:0 0 16px;">
-        <p style="color:#1a1a1a;font-size:14px;font-weight:700;margin:0 0 6px;">🔑 ${tr.licenseLabel}</p>
+        <p style="color:#1a1a1a;font-size:14px;font-weight:700;margin:0 0 6px;">${tr.licenseLabel}</p>
         ${licenseRows}
       </div>`;
     }
@@ -800,7 +800,7 @@ export function paymentConfirmationEmail(
       <p style="color:#666;font-size:13px;margin:0 0 16px;">${timestamp}</p>
       <p style="color:#333;font-size:14px;line-height:1.6;margin:0 0 16px;font-weight:600;">${tr.accessNote}</p>
       <div style="text-align:center;margin:20px 0;">
-        <a href="https://finance.chaomarket.com/account?tab=order-history" style="display:inline-block;background-color:#FFE400;color:#1a1a1a;font-size:14px;font-weight:700;padding:10px 24px;border-radius:6px;text-decoration:none;letter-spacing:0.3px;border:1px solid #999;">${tr.cta}</a>
+        <a href="https://trading.chaomarket.com/account?tab=order-history" style="display:inline-block;background-color:#FFE400;color:#1a1a1a;font-size:14px;font-weight:700;padding:10px 24px;border-radius:6px;text-decoration:none;letter-spacing:0.3px;border:1px solid #999;">${tr.cta}</a>
       </div>
       <p style="color:#333;font-size:15px;line-height:1.6;margin:0;">${tr.closing}</p>
     `,
@@ -867,7 +867,7 @@ export function consultationStatusUpdateEmail(
         </ul>
       </div>
       <div style="text-align:center;margin:20px 0;">
-        <a href="https://finance.chaomarket.com/account?tab=order-history" style="display:inline-block;background-color:#FFE400;color:#1a1a1a;font-size:14px;font-weight:700;padding:10px 24px;border-radius:6px;text-decoration:none;letter-spacing:0.3px;border:1px solid #999;">${tr.cta}</a>
+        <a href="https://trading.chaomarket.com/account?tab=order-history" style="display:inline-block;background-color:#FFE400;color:#1a1a1a;font-size:14px;font-weight:700;padding:10px 24px;border-radius:6px;text-decoration:none;letter-spacing:0.3px;border:1px solid #999;">${tr.cta}</a>
       </div>
       <p style="color:#333;font-size:15px;line-height:1.6;margin:0;">${tr.closing}</p>
     `,
