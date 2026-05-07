@@ -6,6 +6,8 @@ RUN corepack enable pnpm
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile --ignore-scripts
+RUN pnpm approve-builds sharp @sentry/cli
 RUN pnpm install --frozen-lockfile
 
 COPY . .
@@ -13,8 +15,6 @@ RUN pnpm build
 
 # ── Production stage ──
 FROM node:22-alpine AS runner
-
-RUN corepack enable pnpm
 
 WORKDIR /app
 
