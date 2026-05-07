@@ -11,6 +11,10 @@ RUN pnpm approve-builds sharp @sentry/cli
 RUN pnpm install --frozen-lockfile
 
 COPY . .
+
+ARG NEXTAUTH_URL=https://account.chaomarket.com
+ENV NEXTAUTH_URL=$NEXTAUTH_URL
+
 RUN pnpm build
 
 # ── Production stage ──
