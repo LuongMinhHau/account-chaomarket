@@ -41,7 +41,7 @@ export async function POST() {
     const secret = generateSecret();
     const otpauth = generateURI({
         secret,
-        issuer: 'Chào Market',
+        issuer: 'Chào Account',
         label: session.user.email || session.user.id,
     });
 

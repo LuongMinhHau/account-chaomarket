@@ -11,6 +11,8 @@ function getClientIp(request: NextRequest): string {
 }
 
 const AUTH_RATE_LIMITS = {
+    login:            { max: 10, windowMs: 15 * 60 * 1000 },  // 10 attempts per 15 min
+    'verify-password':{ max: 10, windowMs: 15 * 60 * 1000 },  // 10 attempts per 15 min
     register:         { max: 5,  windowMs: 15 * 60 * 1000 },
     otp:              { max: 5,  windowMs: 5 * 60 * 1000 },
     'otp-verify':     { max: 10, windowMs: 5 * 60 * 1000 },

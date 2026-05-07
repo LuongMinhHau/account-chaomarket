@@ -1,16 +1,16 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-    name: 'Chào Market',
+    name: 'Chào Account',
     url: process.env.NEXTAUTH_URL || 'https://account.chaomarket.com',
     /** Centralized auth service URL. Production → account.chaomarket.com; Dev → local */
     accountsUrl: process.env.NODE_ENV === 'production'
         ? 'https://account.chaomarket.com'
         : '',
     description:
-        'Chào Market - Nền tảng tài chính & đầu tư thông minh. Công cụ giao dịch, phân tích thị trường, dữ liệu tài chính và giải pháp đầu tư toàn diện.',
+        'Chào Account - Quản lý tài khoản Chào Enterprise. Bảo mật, xác thực, và quản lý thông tin cá nhân.',
     descriptionEn:
-        'Chào Market - Smart financial platform with trading tools, market analysis, financial data, and comprehensive investment solutions.',
+        'Chào Account - Chào Enterprise account management. Security, authentication, and personal information management.',
     ogImage: '/img/og-image.png',
     locale: 'vi_VN',
     mainNav: [

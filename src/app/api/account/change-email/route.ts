@@ -11,6 +11,7 @@ import { changeEmailNewOtpEmail, getEmailSubject } from '@/lib/email-templates';
 import { getEmailLocale } from '@/lib/get-email-locale';
 import { logAuditEvent } from '@/lib/audit-logger';
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
+import { logger, sendToLogtail } from '@/lib/logger';
 
 function generateOTP(): string {
     return randomInt(100000, 1000000).toString();
@@ -103,7 +104,8 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ message: 'OTP đã được gửi đến email mới' });
     } catch (error) {
-        console.error('Change email error:', error);
+        logger.error({ err: error, userId: session.user.id }, 'Change email error');
+        sendToLogtail('error', 'Change email failed', { userId: session.user.id, error: String(error) });
         return NextResponse.json({ error: 'Không thể gửi mã xác nhận' }, { status: 500 });
     }
 }
@@ -171,7 +173,8 @@ export async function PUT(request: NextRequest) {
             newEmail: newEmail.toLowerCase(),
         });
     } catch (error) {
-        console.error('Verify change email error:', error);
+        logger.error({ err: error, userId: session.user.id }, 'Verify change email error');
+        sendToLogtail('error', 'Verify change email failed', { userId: session.user.id, error: String(error) });
         return NextResponse.json({ error: 'Không thể cập nhật email' }, { status: 500 });
     }
 }

@@ -35,18 +35,12 @@ const CATEGORY_LABELS: Record<string, Record<string, string>> = {
     },
 };
 
-const SEARCH_TEXTS_DEFAULT = {
-    en: {
-        placeholder: 'Search',
-        noResults: 'No results found',
-    },
-    vi: {
-        placeholder: 'Tìm kiếm',
-        noResults: 'Không tìm thấy kết quả',
-    },
+const SEARCH_TEXTS = {
+    en: { placeholder: 'Search', noResults: 'No results found' },
+    vi: { placeholder: 'Tìm kiếm', noResults: 'Không tìm thấy kết quả' },
 };
 
-/* ── Ecosystem Apps Grid Icon (3×3) — matches Chào News ── */
+/* ── Ecosystem Apps Grid Icon (3×3) ── */
 function GridIcon({ className }: { className?: string }) {
     return (
         <svg
@@ -68,8 +62,6 @@ function GridIcon({ className }: { className?: string }) {
     );
 }
 
-
-
 /* ── Ecosystem Launcher Popover ── */
 function EcosystemLauncher() {
     const [isOpen, setIsOpen] = useState(false);
@@ -79,42 +71,54 @@ function EcosystemLauncher() {
 
     const ECOSYSTEM_APPS = [
         {
-            name: 'Chào Market',
-            slogan: locale === 'vi' ? 'Quản Lý Rủi Ro Của Bạn' : 'Manage Your Risk',
-            url: 'https://trading.chaomarket.com',
+            name: 'Chào Trading',
+            slogan:
+                locale === 'vi' ? 'Quản Lý Rủi Ro Của Bạn' : 'Manage Your Risk',
+            url: 'https://finance.chaomarket.com',
             icon: 'chaomarket' as const,
+            color: '#FFE400',
         },
         {
             name: 'Chào News',
-            slogan: locale === 'vi' ? 'Quản Lý Tin Tức Của Bạn' : 'Manage Your News Feed',
+            slogan:
+                locale === 'vi'
+                    ? 'Quản Lý Tin Tức Của Bạn'
+                    : 'Manage Your News Feed',
             url: 'https://news.chaomarket.com',
             icon: 'chaonews' as const,
+            color: '#1a73e8',
+        },
+        {
+            name: 'Chào Account',
+            slogan:
+                locale === 'vi' ? 'Quản Lý Tài Khoản' : 'Account Management',
+            url: 'https://account.chaomarket.com',
+            icon: 'chaomarket' as const,
+            color: '#b388ff',
         },
     ];
 
-    // Close on outside click
     useEffect(() => {
         if (!isOpen) return;
         const handler = (e: MouseEvent) => {
             if (
-                popoverRef.current && !popoverRef.current.contains(e.target as Node) &&
-                btnRef.current && !btnRef.current.contains(e.target as Node)
-            ) {
+                popoverRef.current &&
+                !popoverRef.current.contains(e.target as Node) &&
+                btnRef.current &&
+                !btnRef.current.contains(e.target as Node)
+            )
                 setIsOpen(false);
-            }
         };
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, [isOpen]);
 
-    // Compute popover position
     const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
     useEffect(() => {
         if (!isOpen || !btnRef.current) return;
         const rect = btnRef.current.getBoundingClientRect();
         const popW = 280;
         const spaceRight = window.innerWidth - rect.right;
-
         if (spaceRight >= popW + 8) {
             setPos({ top: rect.top, left: rect.right + 4 });
         } else {
@@ -130,10 +134,7 @@ function EcosystemLauncher() {
                 onClick={() => setIsOpen(o => !o)}
                 className={`flex items-center justify-center size-6 rounded-[4px] mr-[1px] shrink-0 transition-colors duration-200 cursor-pointer
                     bg-[var(--brand-color)] text-black
-                    ${isOpen
-                        ? 'opacity-80'
-                        : 'hover:opacity-80'
-                    }`}
+                    ${isOpen ? 'opacity-80' : 'hover:opacity-80'}`}
                 aria-label={locale === 'vi' ? 'Ứng Dụng' : 'Apps'}
             >
                 <GridIcon className="size-4" />
@@ -147,9 +148,10 @@ function EcosystemLauncher() {
                         dark:bg-[#333] dark:border-[#4a4a4a]"
                     style={{ top: pos.top, left: pos.left }}
                 >
-                    <p className="text-xs font-semibold tracking-[0.05em] mb-2
-                        text-black/80 dark:text-white/80">
-                        {locale === 'vi' ? 'Ứng Dụng' : 'Apps'}
+                    <p className="text-xs font-semibold tracking-[0.05em] mb-2 text-black/80 dark:text-white/80">
+                        {locale === 'vi'
+                            ? 'Hệ Sinh Thái Chào Market'
+                            : 'Chào Market Ecosystem'}
                     </p>
 
                     <div className="grid grid-cols-2 gap-1.5">
@@ -157,41 +159,44 @@ function EcosystemLauncher() {
                             <a
                                 key={app.name}
                                 href={app.url}
-                                target={app.url.startsWith('http') ? '_blank' : undefined}
-                                rel={app.url.startsWith('http') ? 'noopener noreferrer' : undefined}
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 onClick={() => setIsOpen(false)}
                                 className="flex items-center gap-2.5 p-2.5 rounded-lg border border-transparent transition-colors duration-200
                                     hover:border-black/30 dark:hover:border-white/30"
                             >
                                 <div className="shrink-0 w-[35px] h-[35px] rounded-lg overflow-hidden">
-                                    {app.icon === 'chaomarket' ? (
-                                        <Image
-                                            src={LogoBrand}
-                                            alt="Chào Market"
-                                            width={35}
-                                            height={35}
-                                            className="w-[35px] h-[35px] rounded-lg border border-border"
-                                        />
-                                    ) : (
+                                    {app.icon === 'chaonews' ? (
                                         <Image
                                             src={LogoChaoNews}
-                                            alt="Chào News"
+                                            alt={app.name}
                                             width={35}
                                             height={35}
                                             className="w-[35px] h-[35px] rounded-lg"
                                         />
+                                    ) : (
+                                        <Image
+                                            src={LogoBrand}
+                                            alt={app.name}
+                                            width={35}
+                                            height={35}
+                                            className="w-[35px] h-[35px] rounded-lg border border-border"
+                                        />
                                     )}
                                 </div>
                                 <div className="flex flex-col min-w-0 gap-px">
-                                    <span className={`text-sm font-semibold truncate text-black ${
-                                        app.icon === 'chaomarket'
-                                            ? 'dark:text-[#FFE400]'
-                                            : 'dark:text-[#1a73e8]'
-                                    }`}>
-                                        {app.name}
+                                    <span
+                                        className="text-sm font-semibold truncate text-black"
+                                        style={{ color: undefined }}
+                                        data-color={app.color}
+                                    >
+                                        <span
+                                            className={`dark:text-[${app.color}]`}
+                                        >
+                                            {app.name}
+                                        </span>
                                     </span>
-                                    <span className="text-xs font-semibold truncate
-                                        text-black/90 dark:text-white/90">
+                                    <span className="text-xs font-semibold truncate text-black/90 dark:text-white/90">
                                         {app.slogan}
                                     </span>
                                 </div>
@@ -209,78 +214,81 @@ export function SearchForm({ ...props }: React.ComponentProps<'form'>) {
     const { t, locale } = useI18n();
     const router = useRouter();
 
-    const defaults = SEARCH_TEXTS_DEFAULT[locale as keyof typeof SEARCH_TEXTS_DEFAULT] ?? SEARCH_TEXTS_DEFAULT.en;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rawPlaceholder = t('search.placeholder' as any);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rawNoResults = t('search.noResults' as any);
-    const searchPlaceholder = rawPlaceholder && rawPlaceholder !== 'search.placeholder' ? rawPlaceholder : defaults.placeholder;
-    const searchNoResults = rawNoResults && rawNoResults !== 'search.noResults' ? rawNoResults : defaults.noResults;
+    const texts =
+        SEARCH_TEXTS[locale as keyof typeof SEARCH_TEXTS] ?? SEARCH_TEXTS.en;
     const searchRef = useRef<HTMLDivElement>(null);
     const [query, setQuery] = useState('');
-    const [pageResults, setPageResults] = useState<SearchableItem[]>([]);
-    const [postResults, setPostResults] = useState<{ title: string; url: string }[]>([]);
+    const [results, setResults] = useState<SearchableItem[]>([]);
     const [isResultsOpen, setIsResultsOpen] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(-1);
-    const [isLoadingPosts, setIsLoadingPosts] = useState(false);
 
-    // All results combined for keyboard navigation
-    const allResults = useMemo(() => [...pageResults.map(p => p.url), ...postResults.map(p => p.url)], [pageResults, postResults]);
+    const allUrls = useMemo(() => results.map(r => r.url), [results]);
 
-    // Instant page search
+    // Instant local search only (no API)
     useEffect(() => {
         if (query.length < 2) {
-            setPageResults([]);
-            setPostResults([]);
+            setResults([]);
             setIsResultsOpen(false);
             return;
         }
-        const menuResults = searchContent(query, t);
-        setPageResults(menuResults);
+        const found = searchContent(query, t);
+        setResults(found);
         setIsResultsOpen(true);
         setSelectedIndex(-1);
     }, [query, t]);
 
-    // No API post search on Account portal — local search only
-
-    // Close on outside click
     useEffect(() => {
         const handler = (e: MouseEvent) => {
-            if (searchRef.current && !searchRef.current.contains(e.target as Node)) setIsResultsOpen(false);
+            if (
+                searchRef.current &&
+                !searchRef.current.contains(e.target as Node)
+            )
+                setIsResultsOpen(false);
         };
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, []);
 
-    const handleResultClick = useCallback((url: string) => {
-        router.push(url);
-        setQuery(''); setPageResults([]); setPostResults([]); setIsResultsOpen(false);
-    }, [router]);
+    const handleResultClick = useCallback(
+        (url: string) => {
+            router.push(url);
+            setQuery('');
+            setResults([]);
+            setIsResultsOpen(false);
+        },
+        [router]
+    );
 
-    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-        const total = allResults.length;
-        switch (e.key) {
-            case 'ArrowDown':
-                if (isResultsOpen && total > 0) { e.preventDefault(); setSelectedIndex(p => (p < total - 1 ? p + 1 : 0)); }
-                break;
-            case 'ArrowUp':
-                if (isResultsOpen && total > 0) { e.preventDefault(); setSelectedIndex(p => (p > 0 ? p - 1 : total - 1)); }
-                break;
-            case 'Enter':
-                e.preventDefault();
-                if (selectedIndex >= 0 && allResults[selectedIndex]) handleResultClick(allResults[selectedIndex]);
-                else if (total > 0) handleResultClick(allResults[0]);
-                break;
-            case 'Escape':
-                setIsResultsOpen(false); setQuery('');
-                break;
-        }
-    }, [isResultsOpen, allResults, selectedIndex, handleResultClick]);
-
-    const hasAnyResults = pageResults.length > 0 || postResults.length > 0 || isLoadingPosts;
-    const labels = locale === 'vi'
-        ? { pages: 'Trang', posts: 'Bài viết', loading: 'Đang tìm bài viết...' }
-        : { pages: 'Pages', posts: 'Posts', loading: 'Searching posts...' };
+    const handleKeyDown = useCallback(
+        (e: React.KeyboardEvent) => {
+            const total = allUrls.length;
+            switch (e.key) {
+                case 'ArrowDown':
+                    if (isResultsOpen && total > 0) {
+                        e.preventDefault();
+                        setSelectedIndex(p => (p < total - 1 ? p + 1 : 0));
+                    }
+                    break;
+                case 'ArrowUp':
+                    if (isResultsOpen && total > 0) {
+                        e.preventDefault();
+                        setSelectedIndex(p => (p > 0 ? p - 1 : total - 1));
+                    }
+                    break;
+                case 'Enter':
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && allUrls[selectedIndex])
+                        handleResultClick(allUrls[selectedIndex]);
+                    else if (total > 0) handleResultClick(allUrls[0]);
+                    break;
+                case 'Escape':
+                    setIsResultsOpen(false);
+                    setQuery('');
+                    break;
+            }
+        },
+        [isResultsOpen, allUrls, selectedIndex, handleResultClick]
+    );
 
     if (!isOpen) {
         return (
@@ -309,17 +317,23 @@ export function SearchForm({ ...props }: React.ComponentProps<'form'>) {
                     ref={searchRef}
                     className="relative flex flex-col w-full"
                 >
-                    {/* Search Row: Search input + Ecosystem Launcher */}
-                    <div className="flex items-center gap-[2px]">
-                        {/* Search Input */}
-                        <div className="flex-1 min-w-0 flex items-center text-[var(--brand-grey-foreground)] rounded-md hover:bg-black/5 dark:hover:bg-white/5 focus-within:bg-transparent transition-all! duration-300 ease-in-out [\&_input:focus-visible]:placeholder:font-semibold [\&_input:focus-visible~svg]:stroke-[2.5]">
+                    {/* Search Row */}
+                    <div className="flex items-center gap-1.5">
+                        {/* Search Input Container — visible border + background */}
+                        <div
+                            className="flex-1 min-w-0 flex items-center gap-1.5 px-2
+                            border border-black/10 dark:border-white/10 rounded-md
+                            bg-black/[0.03] dark:bg-white/[0.04]
+                            hover:border-black/20 dark:hover:border-white/20
+                            focus-within:border-black/20 dark:focus-within:border-white/20
+                            transition-all duration-200"
+                        >
                             {query ? (
                                 <button
                                     type="button"
                                     onClick={() => {
                                         setQuery('');
-                                        setPageResults([]);
-                                        setPostResults([]);
+                                        setResults([]);
                                         setIsResultsOpen(false);
                                     }}
                                     className="flex-shrink-0 p-0.5 rounded-full hover:bg-[var(--brand-grey)] transition-colors duration-200 cursor-pointer"
@@ -328,10 +342,10 @@ export function SearchForm({ ...props }: React.ComponentProps<'form'>) {
                                     <X className="size-4 text-[var(--brand-grey-foreground)] hover:text-white" />
                                 </button>
                             ) : (
-                                <Search className="pointer-events-none size-4 shrink-0 select-none transition-all duration-300" />
+                                <Search className="pointer-events-none size-4 shrink-0 select-none opacity-50 transition-all duration-200" />
                             )}
                             <Label htmlFor="search" className="sr-only">
-                                {t('common.search')}
+                                Search
                             </Label>
                             <input
                                 id="search"
@@ -339,89 +353,51 @@ export function SearchForm({ ...props }: React.ComponentProps<'form'>) {
                                 value={query}
                                 onChange={e => setQuery(e.target.value)}
                                 onKeyDown={handleKeyDown}
-                                onFocus={() => query.length >= 2 && allResults.length > 0 && setIsResultsOpen(true)}
-                                placeholder={searchPlaceholder}
-                                className="pl-2 h-8 w-full border-none bg-transparent focus:outline-none focus-visible:ring-0 text-brand-text dark:placeholder:text-[var(--brand-grey-foreground)] placeholder:text-[var(--brand-grey-foreground)] placeholder:transition-all placeholder:duration-300"
+                                onFocus={() =>
+                                    query.length >= 2 &&
+                                    results.length > 0 &&
+                                    setIsResultsOpen(true)
+                                }
+                                placeholder={texts.placeholder}
+                                className="h-7 w-full border-none bg-transparent focus:outline-none focus-visible:ring-0
+                                    text-sm text-brand-text
+                                    placeholder:text-[var(--brand-grey-foreground)]/60
+                                    placeholder:text-sm"
                             />
                         </div>
 
-                        {/* Ecosystem Launcher Button */}
+                        {/* Ecosystem Launcher — visually grouped */}
                         <EcosystemLauncher />
                     </div>
 
-                    {/* Search Results Dropdown — Two Sections */}
-
-
-                    {isResultsOpen && hasAnyResults && (
+                    {/* Results */}
+                    {isResultsOpen && results.length > 0 && (
                         <div className="absolute top-full left-0 right-0 mt-1 bg-sidebar border border-[var(--brand-grey)] rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
-                            {/* Section: Pages */}
-                            {pageResults.length > 0 && (
-                                <>
-                                    <div className="px-3 pt-2 pb-1">
-                                        <span className="text-xs font-semibold text-[var(--brand-grey-foreground)] uppercase tracking-wider">
-                                            {labels.pages}
-                                        </span>
-                                    </div>
-                                    {pageResults.map((item, index) => {
-                                        const raw = item.titleKey ? t(item.titleKey) : '';
-                                        const translatedTitle = (raw && raw !== item.titleKey) ? raw : item.title;
-                                        return (
-                                            <button
-                                                key={item.url + index}
-                                                type="button"
-                                                onClick={() => handleResultClick(item.url)}
-                                                className={`w-full text-left px-3 py-1.5 hover:bg-[var(--brand-grey)] transition-colors flex items-center justify-between gap-2 ${selectedIndex === index ? 'bg-[var(--brand-grey)]' : ''}`}
-                                            >
-                                                <span className="text-sm font-medium text-brand-text dark:text-white truncate">
-                                                    {translatedTitle}
-                                                </span>
-                                                <span className="text-xs px-2 py-0.5 rounded bg-[var(--brand-grey)] text-[var(--brand-grey-foreground)] shrink-0">
-                                                    {CATEGORY_LABELS[locale]?.[item.category] || item.category}
-                                                </span>
-                                            </button>
-                                        );
-                                    })}
-                                </>
-                            )}
-
-                            {/* Section: Posts */}
-                            {(postResults.length > 0 || isLoadingPosts) && (
-                                <>
-                                    <div className={`px-3 pt-2 pb-1 ${pageResults.length > 0 ? 'border-t border-[var(--brand-grey)]' : ''}`}>
-                                        <span className="text-xs font-semibold text-[var(--brand-grey-foreground)] uppercase tracking-wider">
-                                            {labels.posts}
-                                        </span>
-                                    </div>
-                                    {postResults.map((post, i) => {
-                                        const globalIndex = pageResults.length + i;
-                                        return (
-                                            <button
-                                                key={post.url + i}
-                                                type="button"
-                                                onClick={() => handleResultClick(post.url)}
-                                                className={`w-full text-left px-3 py-1.5 hover:bg-[var(--brand-grey)] transition-colors flex items-center gap-2 ${selectedIndex === globalIndex ? 'bg-[var(--brand-grey)]' : ''}`}
-                                            >
-                                                <span className="text-sm font-medium text-brand-text dark:text-white truncate">
-                                                    {post.title}
-                                                </span>
-                                            </button>
-                                        );
-                                    })}
-                                    {isLoadingPosts && (
-                                        <div className="px-3 py-2 text-xs text-[var(--brand-grey-foreground)] animate-pulse">
-                                            {labels.loading}
-                                        </div>
-                                    )}
-                                </>
-                            )}
+                            {results.map((item, index) => (
+                                <button
+                                    key={item.url + index}
+                                    type="button"
+                                    onClick={() => handleResultClick(item.url)}
+                                    className={`w-full text-left px-3 py-1.5 hover:bg-[var(--brand-grey)] transition-colors flex items-center justify-between gap-2 ${selectedIndex === index ? 'bg-[var(--brand-grey)]' : ''}`}
+                                >
+                                    <span className="text-sm font-medium text-brand-text dark:text-white truncate">
+                                        {item.title}
+                                    </span>
+                                    <span className="text-xs px-2 py-0.5 rounded bg-[var(--brand-grey)] text-[var(--brand-grey-foreground)] shrink-0">
+                                        {CATEGORY_LABELS[locale]?.[
+                                            item.category
+                                        ] || item.category}
+                                    </span>
+                                </button>
+                            ))}
                         </div>
                     )}
 
                     {/* No results */}
-                    {query.length >= 2 && !hasAnyResults && (
+                    {query.length >= 2 && results.length === 0 && (
                         <div className="absolute top-full left-0 right-0 mt-1 bg-sidebar border border-[var(--brand-grey)] rounded-lg shadow-lg z-50 p-3">
                             <p className="text-sm text-[var(--brand-grey-foreground)] text-center">
-                                {searchNoResults}
+                                {texts.noResults}
                             </p>
                         </div>
                     )}

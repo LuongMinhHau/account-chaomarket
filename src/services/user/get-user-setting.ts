@@ -7,9 +7,6 @@ interface UserSettings {
     [key: string]: unknown;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const getUserSetting = async (): Promise<UserSettings | null> => null;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const getUserSettingsOrCreate = async (_id?: string): Promise<UserSettings | null> => null;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const editUserSettings = async (_data: Record<string, unknown>): Promise<UserSettings | null> => null;

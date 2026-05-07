@@ -1,6 +1,5 @@
 'use client';
 import { sanitizeHtml } from '@/lib/sanitize';
-import Link from 'next/link';
 import Image from 'next/image';
 import {
     Facebook,
@@ -8,7 +7,6 @@ import {
     ThreadBlack,
     TikTok,
     Youtube,
-    LinkedIn,
 } from '@image/index';
 import {
     Mail, Headset, Clock, Info, Bell, Phone, MessageCircle, HelpCircle,
@@ -20,12 +18,6 @@ import {
 import { useI18n } from '@/context/i18n/context';
 import { T } from './app-translate';
 import { useIsMobile } from '@/hooks/use-mobile';
-import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-} from '@/components/ui/accordion';
 
 // Platform icon mapping
 const PLATFORM_IMAGES: Record<string, typeof Facebook> = {
@@ -34,7 +26,6 @@ const PLATFORM_IMAGES: Record<string, typeof Facebook> = {
     tiktok: TikTok,
     instagram: Instagram,
     threads: ThreadBlack,
-    linkedin: LinkedIn,
 };
 
 const CONTACT_ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
@@ -92,6 +83,7 @@ export default function AppFooter({ settings = {} }: AppFooterProps) {
             value,
             href: isEmail ? `mailto:${value}` : '',
             visible,
+            isStatic: !isEmail,
         };
     }).filter(item => item.visible === 'active');
 
@@ -117,18 +109,18 @@ export default function AppFooter({ settings = {} }: AppFooterProps) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                     alt={`${platform}-img`}
-                    className={'size-6 rounded-full p-0.5 object-cover'}
+                    className={'footer-social-icon-img'}
                     src={customIcon}
-                    width={24}
-                    height={24}
+                    width={20}
+                    height={20}
                 />
             ) : (
                 <Image
                     alt={`${platform}-img`}
-                    className={'size-6 rounded-full p-0.5'}
+                    className={'footer-social-icon-img'}
                     src={imgSrc}
-                    width={1920}
-                    height={1080}
+                    width={20}
+                    height={20}
                 />
             ),
             visible,
@@ -144,8 +136,8 @@ export default function AppFooter({ settings = {} }: AppFooterProps) {
 
     // Column headings from settings (locale-aware)
     const col1Heading = locale === 'vi'
-        ? (settings.footer_col1_heading_vi || settings.footer_col1_heading || t('footer.getToKnowUs'))
-        : (settings.footer_col1_heading_en || settings.footer_col1_heading || t('footer.getToKnowUs'));
+        ? (settings.footer_col1_heading_vi || settings.footer_col1_heading || t('footer.legal'))
+        : (settings.footer_col1_heading_en || settings.footer_col1_heading || t('footer.legal'));
     const col2Heading = locale === 'vi'
         ? (settings.footer_col2_heading_vi || settings.footer_col2_heading || t('common.letUsHelpYou'))
         : (settings.footer_col2_heading_en || settings.footer_col2_heading || t('common.letUsHelpYou'));
@@ -155,75 +147,76 @@ export default function AppFooter({ settings = {} }: AppFooterProps) {
 
     // Build navigation links dynamically from settings
     const defaultLinks = [
-        { label: "About Us", href: "/about", i18nKey: "footer.aboutUs.title" },
-        { label: "Terms of Use", href: "/terms-of-use", i18nKey: "footer.termOfUse.title" },
-        { label: "Privacy Policy", href: "/privacy-policy", i18nKey: "footer.privacyPolicy.title" },
-        { label: "Support Policy", href: "/support-policy", i18nKey: "footer.supportPolicy.title" },
-        { label: "Cookie Policy", href: "/cookie-policy", i18nKey: "footer.cookiePolicy.title" },
+        { label: "Privacy Policy", href: "https://policy.chaomarket.com/privacy-policy", i18nKey: "footer.privacyPolicy.title" },
+        { label: "Terms of Use", href: "https://policy.chaomarket.com/terms-of-use", i18nKey: "footer.termOfUse.title" },
+        { label: "Cookie Policy", href: "https://policy.chaomarket.com/cookie-policy", i18nKey: "footer.cookiePolicy.title" },
+        { label: "Support Policy", href: "https://policy.chaomarket.com/support-policy", i18nKey: "footer.supportPolicy.title" },
     ];
     const linkIndices = new Set<number>();
     for (const key of Object.keys(settings)) {
         const m = key.match(/^footer_link_(\d+)_/);
         if (m) linkIndices.add(parseInt(m[1], 10));
     }
-    for (let i = 1; i <= 5; i++) linkIndices.add(i);
-    const getToKnowUs = Array.from(linkIndices).sort((a, b) => a - b).map((n) => {
+    for (let i = 1; i <= 4; i++) linkIndices.add(i);
+    const legalLinks = Array.from(linkIndices).sort((a, b) => a - b).map((n) => {
         const fallback = defaultLinks[n - 1];
         const adminLabelEn = settings[`footer_link_${n}_label_en`];
         const adminLabelVi = settings[`footer_link_${n}_label_vi`];
-        const adminLabel = settings[`footer_link_${n}_label`]; // old single-language key
+        const adminLabel = settings[`footer_link_${n}_label`];
         const label = locale === 'vi'
             ? (adminLabelVi || adminLabel || fallback?.label || '')
             : (adminLabelEn || adminLabel || fallback?.label || '');
         const href = settings[`footer_link_${n}_href`] || fallback?.href || '/';
         const order = parseInt(settings[`footer_link_${n}_order`] || String(n), 10);
         const visible = settings[`footer_link_${n}_visible`] ?? 'active';
-        // Use i18n only if there's no admin override at all
         const useI18n = !adminLabelEn && !adminLabelVi && !adminLabel;
         return { href, label, i18nKey: useI18n ? (fallback?.i18nKey || '') : '', order, visible };
     }).filter(item => item.visible === 'active').sort((a, b) => a.order - b.order);
 
-    const mobileComp = (
-        <div className="flex flex-col mx-auto px-4">
-            <Accordion type="single" collapsible className="w-full" defaultValue={'item-1'}>
-                {/* 1. Get to Know Us */}
-                <AccordionItem value="item-1">
-                    <AccordionTrigger className="font-semibold text-brand-text text-sm">
-                        {col1Heading}
-                    </AccordionTrigger>
-                    <AccordionContent>
-                        <ul className="space-y-3 pt-2 text-[var(--brand-grey-foreground)]">
-                            {getToKnowUs.map(item => (
-                                <li key={item.href}>
-                                    <Link href={item.href} className="hover:text-brand-text hover:underline">
+    return (
+        <footer className="main-footer" role="contentinfo">
+            <div className="footer-container">
+                <div className="footer-grid">
+                    {/* ── Column 1: Legal ── */}
+                    <details className="footer-col" open={!isMobile} data-accordion-item="1">
+                        <summary className="footer-col-heading">
+                            {col1Heading}
+                        </summary>
+                        <ul className="footer-list">
+                            {legalLinks.map(item => (
+                                <li key={item.href} className="footer-list-item footer-list-item--single">
+                                    <a
+                                        href={item.href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="footer-item-value"
+                                    >
                                         {item.i18nKey ? <T keyName={item.i18nKey} /> : item.label}
-                                    </Link>
+                                    </a>
                                 </li>
                             ))}
                         </ul>
-                    </AccordionContent>
-                </AccordionItem>
+                    </details>
 
-                {/* 2. Let Us Help You */}
-                <AccordionItem value="item-2">
-                    <AccordionTrigger className="font-semibold text-brand-text text-sm">
-                        {col2Heading}
-                    </AccordionTrigger>
-                    <AccordionContent>
-                        <ul className="space-y-3 pt-2 text-[var(--brand-grey-foreground)]">
+                    {/* ── Column 2: Let Us Help You ── */}
+                    <details className="footer-col" open={!isMobile} data-accordion-item="2">
+                        <summary className="footer-col-heading">
+                            {col2Heading}
+                        </summary>
+                        <ul className="footer-list">
                             {contactInfo.map((item, index) => (
-                                <li key={index} className="flex justify-between items-center pr-2">
-                                    <span className="flex items-center gap-2">
+                                <li key={index} className="footer-list-item">
+                                    <span className="footer-item-label">
                                         {item.icon}
-                                        {item.label}
+                                        <span>{item.label}</span>
                                     </span>
                                     <span>
                                         {item.href ? (
-                                            <a href={item.href} className="hover:underline text-brand-text font-semibold text-sm">
+                                            <a href={item.href} className="footer-item-value">
                                                 {item.value}
                                             </a>
                                         ) : (
-                                            <span className="text-brand-text font-semibold text-sm whitespace-pre-line text-right">
+                                            <span className="footer-item-value footer-item-static">
                                                 {item.value}
                                             </span>
                                         )}
@@ -231,121 +224,39 @@ export default function AppFooter({ settings = {} }: AppFooterProps) {
                                 </li>
                             ))}
                         </ul>
-                    </AccordionContent>
-                </AccordionItem>
+                    </details>
 
-                {/* 3. Follow Us */}
-                <AccordionItem value="item-3">
-                    <AccordionTrigger className="font-semibold text-brand-text text-sm">
-                        {col3Heading}
-                    </AccordionTrigger>
-                    <AccordionContent>
-                        <ul className="space-y-3 pt-2 text-[var(--brand-grey-foreground)]">
+                    {/* ── Column 3: Follow Us (icon-only horizontal row) ── */}
+                    <details className="footer-col" open={!isMobile} data-accordion-item="3">
+                        <summary className="footer-col-heading">
+                            {col3Heading}
+                        </summary>
+                        <ul className="footer-list footer-list--social">
                             {socialLinks.map((link, index) => (
-                                <li key={index} className="flex justify-between items-center pr-2">
-                                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                                <li key={index}>
+                                    <a
+                                        href={link.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="footer-social-icon"
+                                        aria-label={`${link.platform} — ${link.name}`}
+                                    >
                                         {link.icon}
                                     </a>
-                                    <span>
-                                        <a href={link.url} target="_blank" rel="noopener noreferrer" className="hover:underline text-brand-text font-semibold">
-                                            {link.name}
-                                        </a>
-                                    </span>
                                 </li>
                             ))}
                         </ul>
-                    </AccordionContent>
-                </AccordionItem>
-            </Accordion>
-
-            {copyrightVisible && (
-                <div
-                    className="text-center text-xs md:text-base dark:text-[var(--brand-color)] text-brand-text font-medium my-4"
-                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(copyright) }}
-                />
-            )}
-        </div>
-    );
-
-    const defaultComp = (
-        <div className="max-w-[80svw] flex flex-col justify-center mx-auto space-y-8">
-            <div className="flex flex-col md:flex-row md:justify-between md:px-8">
-                {/* Get to Know Us */}
-                <div className="mb-8 md:mb-0">
-                    <h3 className="font-semibold text-brand-text mb-4 text-base md:text-lg">
-                        {col1Heading}
-                    </h3>
-                    <ul className="space-y-3 font-medium text-[var(--brand-grey-foreground)] [&>_*_a]:hover:text-brand-text min-w-2/3">
-                        {getToKnowUs.map(item => (
-                            <li key={item.href}>
-                                <Link href={item.href} className="hover:underline">
-                                    {item.i18nKey ? <T keyName={item.i18nKey} /> : item.label}
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
+                    </details>
                 </div>
 
-                {/* Let Us Help You */}
-                <div className="mb-8 md:mb-0">
-                    <h3 className="font-semibold text-brand-text mb-4 text-base md:text-lg">
-                        {col2Heading}
-                    </h3>
-                    <ul className="space-y-3 font-medium dark:text-[var(--brand-grey-foreground)] text-[var(--brand-grey-foreground)] min-w-2/3 [&_*_span:last-child]:font-semibold dark:[&_*_span:last-child]:text-brand-text [&>_*_a]:text-brand-text">
-                        {contactInfo.map((item, index) => (
-                            <li key={index} className="flex justify-between gap-12">
-                                <span className="flex items-center gap-2">
-                                    {item.icon}
-                                    {item.label}
-                                </span>
-                                <span>
-                                    {item.href ? (
-                                        <a href={item.href} className="hover:underline">
-                                            {item.value}
-                                        </a>
-                                    ) : (
-                                        <span className="whitespace-pre-line text-right">{item.value}</span>
-                                    )}
-                                </span>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-
-                {/* Follow Us */}
-                <div>
-                    <h3 className="font-semibold text-brand-text mb-4 text-lg">
-                        {col3Heading}
-                    </h3>
-                    <ul className="space-y-3 text-normal dark:text-[var(--brand-grey-foreground)] min-w-2/3">
-                        {socialLinks.map((link, index) => (
-                            <li key={index} className="flex justify-between gap-12">
-                                <a href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[var(--brand-color)]">
-                                    {link.icon}
-                                </a>
-                                <span>
-                                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="hover:underline text-brand-text font-semibold">
-                                        {link.name}
-                                    </a>
-                                </span>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+                {/* ── Copyright ── */}
+                {copyrightVisible && (
+                    <div
+                        className="footer-copyright"
+                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(copyright) }}
+                    />
+                )}
             </div>
-
-            {copyrightVisible && (
-                <div
-                    className="text-center text-base dark:text-[var(--brand-color)] text-brand-text font-medium mt-6"
-                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(copyright) }}
-                />
-            )}
-        </div>
-    );
-
-    return (
-        <footer className="dark:bg-sidebar border-t px-12 py-10">
-            {isMobile ? mobileComp : defaultComp}
         </footer>
     );
 }

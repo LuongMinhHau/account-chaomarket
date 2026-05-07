@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/next-auth.config';
 import { db } from '@/lib/db';
 import { userDevices } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { logger, sendToLogtail } from '@/lib/logger';
 
 export async function GET() {
     const session = await getServerSession(authOptions);
@@ -20,8 +21,10 @@ export async function GET() {
             .limit(20);
 
         return NextResponse.json({ devices });
-    } catch {
+    } catch (error) {
         // Table may not exist yet — return empty
+        logger.warn({ err: error }, 'Devices fetch — table may not exist');
+        sendToLogtail('warn', 'Devices fetch fallback', { error: String(error) });
         return NextResponse.json({ devices: [] });
     }
 }

@@ -6,6 +6,7 @@ import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { logAuditEvent } from '@/lib/audit-logger';
+import { logger, sendToLogtail } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
 
         if (!user || !user.password) {
             return NextResponse.json(
-                { message: 'Tài khoản không hỗ trợ đổi mật khẩu (đăng nhập qua Google)' },
+                { message: 'OAuth accounts cannot change password' },
                 { status: 400 }
             );
         }
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
         const isValid = await bcrypt.compare(currentPassword, user.password);
         if (!isValid) {
             return NextResponse.json(
-                { message: 'Mật khẩu hiện tại không đúng' },
+                { message: 'Current password is incorrect' },
                 { status: 400 }
             );
         }
@@ -70,7 +71,8 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ message: 'Password changed successfully' });
     } catch (error) {
-        console.error('Change password error:', error);
+        logger.error({ err: error, userId: session.user.id }, 'Change password error');
+        sendToLogtail('error', 'Change password failed', { userId: session.user.id, error: String(error) });
         return NextResponse.json({ message: 'Failed to change password' }, { status: 500 });
     }
 }

@@ -1,4 +1,6 @@
 import { headers } from 'next/headers';
+import { db } from '@/lib/db';
+import { auditLogs } from '@/db/schema';
 
 export interface AuditEvent {
     action: 'register' | 'login' | 'logout' | 'password_reset' |
@@ -6,11 +8,12 @@ export interface AuditEvent {
     userId?: string | null;
     email?: string | null;
     details?: Record<string, unknown>;
+    meta?: Record<string, unknown>;
 }
 
 /**
  * Log a user activity audit event.
- * Non-blocking — never throws.
+ * Writes to the audit_logs DB table. Non-blocking — never throws.
  */
 export async function logAuditEvent(event: AuditEvent): Promise<void> {
     try {
@@ -20,16 +23,12 @@ export async function logAuditEvent(event: AuditEvent): Promise<void> {
             headersList.get('x-real-ip') ||
             'unknown';
 
-        const entry = {
-            timestamp: new Date().toISOString(),
-            action: event.action,
+        await db.insert(auditLogs).values({
             userId: event.userId || null,
-            email: event.email || null,
+            action: event.action,
             ipAddress,
-            details: event.details || null,
-        };
-
-        console.log(`[AUDIT] ${event.action}`, JSON.stringify(entry));
+            metadata: event.details || event.meta || null,
+        });
     } catch {
         // Audit logging must never break the main flow
     }

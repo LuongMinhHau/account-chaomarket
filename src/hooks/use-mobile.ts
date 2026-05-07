@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { useDeviceType, type DeviceType } from './use-device-type';
 
-const MOBILE_BREAKPOINT = 1024;
+const MOBILE_BREAKPOINT = 1025;
 
 /**
  * Returns true for mobile and tablet devices (< 1024px).

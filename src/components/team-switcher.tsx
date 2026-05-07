@@ -3,10 +3,8 @@ import {
     SidebarGroup,
     useSidebar,
 } from '@/components/ui/sidebar';
-import Image from 'next/image';
-import { LogoBrand } from '@image/index';
+import { User } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
 
 export function NavHead({
     headers: data,
@@ -19,45 +17,27 @@ export function NavHead({
 }>) {
     const { open } = useSidebar();
     const teams = data[0];
-    const [logoError, setLogoError] = React.useState(false);
-    const useCustomLogo = teams.logo && typeof teams.logo === 'string' && !logoError;
 
     return (
         <SidebarGroup className="p-0">
-            <Link
-                href="/home"
+            <a
+                href="/"
                 className={cn(
                     'flex items-center gap-2 rounded-md transition-colors',
                     'hover:bg-transparent dark:hover:text-[var(--brand-color)]',
                     open ? 'px-0' : 'justify-center'
                 )}
             >
-                {/* Logo — 40×40, rounded-lg, border */}
+                {/* Logo — 40×40, yellow bg + User icon */}
                 <div className="shrink-0">
-                    {useCustomLogo ? (
-                        <Image
-                            src={teams.logo as string}
-                            alt="Logo Brand"
-                            width={40}
-                            height={40}
-                            className={cn(
-                                'rounded-lg border border-border object-contain bg-sidebar',
-                                'w-[40px] h-[40px]'
-                            )}
-                            onError={() => setLogoError(true)}
-                        />
-                    ) : (
-                        <Image
-                            src={LogoBrand}
-                            alt="Logo Brand"
-                            width={40}
-                            height={40}
-                            className={cn(
-                                'rounded-lg border border-border bg-sidebar',
-                                'w-[40px] h-[40px]'
-                            )}
-                        />
-                    )}
+                    <div
+                        className={cn(
+                            'flex items-center justify-center rounded-lg border border-transparent bg-[#FFE400]',
+                            'w-[40px] h-[40px]'
+                        )}
+                    >
+                        <User size={24} strokeWidth={2.75} className="text-black" />
+                    </div>
                 </div>
 
                 {/* Brand name + slogan — only when sidebar open */}
@@ -71,7 +51,7 @@ export function NavHead({
                         </span>
                     </div>
                 )}
-            </Link>
+            </a>
         </SidebarGroup>
     );
 }

@@ -9,78 +9,54 @@ export interface SearchableItem {
 }
 
 export const SEARCHABLE_CONTENT: SearchableItem[] = [
-    // Auth Pages
-    {
-        title: 'Home',
-        titleKey: 'sidebar.home',
-        url: '/account',
-        category: 'page',
-        keywords: ['home', 'trang chủ', 'dashboard', 'tổng quan'],
-    },
-    {
-        title: 'Sign Up',
-        titleKey: 'auth.signup',
-        url: '/auth/sign-up',
-        category: 'page',
-        keywords: ['sign up', 'đăng ký', 'register', 'tạo tài khoản', 'create account'],
-    },
-    {
-        title: 'Reset Password',
-        url: '/auth/reset-password',
-        category: 'page',
-        keywords: ['reset', 'password', 'mật khẩu', 'quên', 'forgot', 'đổi'],
-    },
-
-    // Account Management
+    // Thông Báo
     {
         title: 'Notifications',
         titleKey: 'account.notification',
-        url: '/account/notifications',
-        category: 'account',
+        url: '/notifications',
+        category: 'page',
         keywords: ['notification', 'thông báo', 'alerts', 'cảnh báo'],
     },
-    {
-        title: 'Order History',
-        titleKey: 'account.orderHistory',
-        url: '/account/orders',
-        category: 'account',
-        keywords: ['order', 'đơn hàng', 'history', 'lịch sử', 'purchase', 'mua'],
-    },
+
+    // Hồ Sơ
     {
         title: 'Profile',
         titleKey: 'account.profile',
-        url: '/account/profile',
-        category: 'account',
-        keywords: ['profile', 'hồ sơ', 'personal', 'cá nhân', 'info', 'thông tin'],
+        url: '/profile',
+        category: 'page',
+        keywords: ['profile', 'hồ sơ', 'personal', 'cá nhân', 'info', 'thông tin', 'avatar', 'ảnh đại diện'],
     },
+
+    // Lịch Sử Đơn Hàng
+    {
+        title: 'Order History',
+        titleKey: 'account.orderHistory',
+        url: '/order-history',
+        category: 'page',
+        keywords: ['order', 'đơn hàng', 'history', 'lịch sử', 'purchase', 'mua'],
+    },
+
+    // Bảo Mật
     {
         title: 'Security',
         titleKey: 'account.security',
-        url: '/account/security',
-        category: 'account',
-        keywords: ['security', 'bảo mật', 'password', 'mật khẩu', '2fa', 'two-factor', 'xác minh'],
+        url: '/security',
+        category: 'page',
+        keywords: ['security', 'bảo mật', 'password', 'mật khẩu', 'đổi mật khẩu'],
     },
     {
-        title: 'Terms',
-        titleKey: 'account.legalCompliance',
-        url: '/account/legal',
-        category: 'account',
-        keywords: ['terms', 'điều khoản', 'legal', 'pháp lý', 'compliance'],
+        title: 'Devices',
+        titleKey: 'account.devices',
+        url: '/security/devices',
+        category: 'feature',
+        keywords: ['device', 'thiết bị', 'đăng nhập', 'login', 'session', 'phiên'],
     },
     {
-        title: 'Privacy',
-        titleKey: 'account.privacy',
-        url: '/account/privacy',
-        category: 'account',
-        keywords: ['privacy', 'quyền riêng tư', 'data', 'dữ liệu', 'xóa tài khoản', 'delete', 'export', 'tải xuống', 'oauth', 'google'],
-    },
-
-    // Information
-    {
-        title: 'Contact',
-        url: 'https://chaomarket.com/contact',
-        category: 'info',
-        keywords: ['contact', 'liên hệ', 'support', 'hỗ trợ'],
+        title: 'Two-Factor Authentication',
+        titleKey: 'account.twoFactor',
+        url: '/security/two-factor',
+        category: 'feature',
+        keywords: ['2fa', 'two-factor', 'xác minh', 'otp', 'authenticator', 'bảo mật 2 lớp'],
     },
 ];
 

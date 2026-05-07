@@ -181,23 +181,46 @@ function LoginPage() {
             const result = await response.json();
 
             if (result.data?.emailVerified) {
-                // Email verified — proceed with login
-                const signInResult = await signIn('credentials', {
-                    email: data.email,
-                    password: data.password,
-                    redirect: false,
-                });
+                // Email verified — check if login verification is enabled
+                if (result.data?.loginVerification) {
+                    // Login verification ON — verify password WITHOUT creating session
+                    const pwCheck = await fetch('/api/auth/verify-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: data.email, password: data.password }),
+                    });
 
-                if (!signInResult?.ok) {
-                    setError(t('auth.invalidCredentials'));
-                } else {
-                    const callbackUrl = searchParams.get('callbackUrl') || '/account';
-                    if (callbackUrl.startsWith('http')) {
-                        window.location.replace(callbackUrl);
-                        return;
+                    if (!pwCheck.ok) {
+                        setError(t('auth.invalidCredentials'));
                     } else {
-                        router.push(callbackUrl);
-                        return;
+                        // Password correct — send OTP for login verification
+                        setLoginData(data);
+                        await fetch('/api/auth/otp', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: data.email, type: 'email', purpose: 'loginVerification' }),
+                        });
+                        setEmailVerified(false);
+                    }
+                } else {
+                    // Login verification OFF — proceed with normal login
+                    const signInResult = await signIn('credentials', {
+                        email: data.email,
+                        password: data.password,
+                        redirect: false,
+                    });
+
+                    if (!signInResult?.ok) {
+                        setError(t('auth.invalidCredentials'));
+                    } else {
+                        const callbackUrl = searchParams.get('callbackUrl') || '/profile';
+                        if (callbackUrl.startsWith('http')) {
+                            window.location.replace(callbackUrl);
+                            return;
+                        } else {
+                            router.push(callbackUrl);
+                            return;
+                        }
                     }
                 }
             } else {
@@ -236,7 +259,7 @@ function LoginPage() {
                 setError(t('auth.invalidCredentials'));
                 setEmailVerified(true);
             } else {
-                const cb = searchParams.get('callbackUrl') || '/account';
+                const cb = searchParams.get('callbackUrl') || '/profile';
                 if (cb.startsWith('http')) {
                     window.location.replace(cb);
                     return;

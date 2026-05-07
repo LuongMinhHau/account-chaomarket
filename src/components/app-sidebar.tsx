@@ -3,12 +3,6 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import {
-    UserRound,
-    ShieldCheck,
-    Bell,
-    Receipt,
-    Scale,
-    Eye,
     GalleryVerticalEnd,
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
@@ -17,10 +11,10 @@ import { useI18n } from '@/context/i18n/context';
 import {
     Sidebar,
     SidebarContent,
-    SidebarFooter,
     SidebarHeader,
     SidebarRail,
     SidebarMenuSkeleton,
+    SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { NavUser } from '@/components/nav-user';
 import { NavHead } from '@/components/team-switcher';
@@ -55,33 +49,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         items: [
             {
                 title: t('account.notification'),
-                url: '/account/notifications',
-                icon: Bell,
+                url: '/notifications',
             },
             {
                 title: t('account.profile'),
-                url: '/account/profile',
-                icon: UserRound,
+                url: '/profile',
             },
             {
                 title: t('account.orderHistory'),
-                url: '/account/orders',
-                icon: Receipt,
+                url: '/order-history',
             },
             {
                 title: t('account.security'),
-                url: '/account/security',
-                icon: ShieldCheck,
-            },
-            {
-                title: t('account.privacy'),
-                url: '/account/privacy',
-                icon: Eye,
-            },
-            {
-                title: t('account.legalCompliance'),
-                url: '/account/legal',
-                icon: Scale,
+                url: '/security',
             },
         ],
     };
@@ -110,26 +90,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                             ))}
                     </div>
                 </SidebarContent>
-                <NavSeparator isTrigger={false} className="my-2" />
-                <div className="p-2 space-y-2">
-                    {Array(3)
-                        .fill(0)
-                        .map((_, i) => (
-                            <SidebarMenuSkeleton
-                                key={i}
-                                showIcon={true}
-                                className="[&>[data-sidebar=menu-skeleton-text]]:group-data-[collapsible=icon]:hidden"
-                            />
-                        ))}
-                </div>
-                <SidebarFooter>
-                    <div className="p-2">
-                        <SidebarMenuSkeleton
-                            showIcon={true}
-                            className="h-12 [&>[data-sidebar=menu-skeleton-text]]:group-data-[collapsible=icon]:hidden"
-                        />
-                    </div>
-                </SidebarFooter>
                 <SidebarRail />
             </>
         );
@@ -147,14 +107,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 renderLoadingSkeletons()
             ) : (
                 <>
-                    <SidebarHeader className="p-2">
+                    <SidebarHeader className="pt-3 px-3 pb-3.5 gap-3.5">
                         <NavHead headers={data.headers} />
-                        <div className="mb-0">
-                            <SearchForm />
-                        </div>
+                        <SearchForm />
                         <NavUser />
                     </SidebarHeader>
-                    <NavSeparator />
+                    {/* Separator + Toggle — relative wrapper for auto-alignment */}
+                    <div className="relative">
+                        <NavSeparator isTrigger={false} />
+                        <SidebarTrigger
+                            className={
+                                'absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 cursor-pointer z-21'
+                            }
+                        />
+                    </div>
                     <SidebarContent>
                         <React.Suspense fallback={<SidebarMenuSkeleton />}>
                             <NavMain
@@ -165,7 +131,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     </SidebarContent>
                     <NavSeparator isTrigger={false} className="my-2" />
                     <NavInformation
-                        contactVisible={true}
+                        contactVisible={false}
                         languageVisible={true}
                         languageViVisible={true}
                         languageEnVisible={true}

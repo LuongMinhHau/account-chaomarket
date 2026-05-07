@@ -25,6 +25,7 @@ import PageHeader from '@/components/page-header';
 import EmptyState from '@/components/empty-state';
 import { useRouter } from 'next/navigation';
 import { useI18n } from '@/context/i18n/context';
+import { usePageTitle } from '@/hooks/use-page-title';
 
 interface NotificationItem {
     id: string;
@@ -112,29 +113,108 @@ function NotificationRow({
             >
                 <span className={cn(
                     'text-[14px] min-w-0 truncate font-semibold',
-                    unread ? 'text-black dark:text-white' : 'text-black/50 dark:text-white/50'
+                    unread ? 'text-black/90 dark:text-white/90' : 'text-black/50 dark:text-white/50'
                 )}>
                     {notification.title}
                 </span>
                 <span className={cn(
                     'text-[14px] min-w-0 truncate font-normal',
-                    unread ? 'text-black/80 dark:text-white/80' : 'text-black/40 dark:text-white/40'
+                    unread ? 'text-black/60 dark:text-white/60' : 'text-black/40 dark:text-white/40'
                 )}>
                     {notification.message}
                 </span>
                 <span className={cn(
-                    'text-[14px] font-semibold whitespace-nowrap',
-                    unread ? 'text-black dark:text-white' : 'text-black/50 dark:text-white/50'
+                    'text-[14px] font-medium whitespace-nowrap',
+                    unread ? 'text-black/90 dark:text-white/90' : 'text-black/50 dark:text-white/50'
                 )}>
                     {cfg.label}
                 </span>
                 <span className={cn(
                     'text-[14px] whitespace-nowrap font-normal',
-                    unread ? 'text-black/70 dark:text-white/70' : 'text-black/40 dark:text-white/40'
+                    unread ? 'text-black/50 dark:text-white/50' : 'text-black/40 dark:text-white/40'
                 )}>
                     {timeAgo(notification.createdAt)}
                 </span>
             </div>
+        </div>
+    );
+}
+
+// ── Notification Card (Mobile) ──
+function NotificationCard({
+    notification,
+    unread,
+    onClickRow,
+    onToggleStar,
+    typeConfig,
+    timeAgo,
+}: {
+    notification: NotificationItem;
+    unread: boolean;
+    onClickRow: () => void;
+    onToggleStar: (e: React.MouseEvent) => void;
+    typeConfig: ReturnType<typeof useTypeConfig>;
+    timeAgo: (dateStr: string) => string;
+}) {
+    const cfg = typeConfig[notification.type] || typeConfig.system;
+
+    return (
+        <div
+            onClick={onClickRow}
+            className={cn(
+                'px-3 py-3 cursor-pointer',
+                'border-b border-border/30 dark:border-white/[0.06]',
+                'transition-colors duration-100',
+                'hover:bg-black/[0.04] dark:hover:bg-white/[0.06]',
+                unread
+                    ? 'bg-white dark:bg-white/[0.03]'
+                    : 'bg-transparent',
+            )}
+        >
+            <div className="flex items-start justify-between mb-1.5">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <button
+                        onClick={onToggleStar}
+                        className={cn(
+                            'flex-shrink-0 p-0.5 rounded transition-colors duration-150 cursor-pointer',
+                            notification.isStarred
+                                ? 'text-amber-400 hover:text-amber-500'
+                                : 'text-black/20 dark:text-white/20 hover:text-amber-400',
+                        )}
+                        aria-label={notification.isStarred ? 'Unstar' : 'Star'}
+                    >
+                        <Star
+                            className="size-[14px]"
+                            fill={notification.isStarred ? 'currentColor' : 'none'}
+                            strokeWidth={2}
+                        />
+                    </button>
+                    <span className={cn(
+                        'text-[14px] font-semibold truncate',
+                        unread ? 'text-black/90 dark:text-white/90' : 'text-black/50 dark:text-white/50'
+                    )}>
+                        {notification.title}
+                    </span>
+                </div>
+                <span className={cn(
+                    'text-[12px] font-medium whitespace-nowrap ml-2 flex-shrink-0',
+                    unread ? 'text-black/90 dark:text-white/90' : 'text-black/50 dark:text-white/50'
+                )}>
+                    {cfg.label}
+                </span>
+            </div>
+            <p className={cn(
+                'text-[13px] line-clamp-2 mb-1.5',
+                unread ? 'text-black/60 dark:text-white/60' : 'text-black/40 dark:text-white/40'
+            )}>
+                {notification.message}
+            </p>
+            <span className={cn(
+                'text-[12px]',
+                unread ? 'text-black/40 dark:text-white/40' : 'text-black/30 dark:text-white/30'
+            )}>
+                {timeAgo(notification.createdAt)}
+            </span>
         </div>
     );
 }
@@ -159,9 +239,9 @@ function generateMockNotifications(): NotificationItem[] {
             { title: 'Bảo trì hệ thống', message: 'Hệ thống sẽ bảo trì vào lúc 02:00 - 04:00 ngày 01/05/2026. Các dịch vụ có thể bị gián đoạn trong thời gian này.' },
             { title: 'Cập nhật phiên bản mới', message: 'Phiên bản 2.5.0 đã được triển khai với nhiều cải tiến hiệu năng và giao diện người dùng mới.' },
             { title: 'Chính sách bảo mật cập nhật', message: 'Chính sách bảo mật đã được cập nhật từ ngày 01/05/2026. Vui lòng đọc và xác nhận để tiếp tục sử dụng dịch vụ.' },
-            { title: 'Tính năng mới: Ví điện tử', message: 'Chào Market vừa ra mắt tính năng Ví điện tử. Nạp tiền ngay để nhận ưu đãi 10% cho giao dịch đầu tiên.' },
+            { title: 'Tính năng mới: Ví điện tử', message: 'Tính năng Ví điện tử vừa ra mắt. Nạp tiền ngay để nhận ưu đãi 10% cho giao dịch đầu tiên.' },
             { title: 'Thời gian hoạt động tháng 4', message: 'Uptime hệ thống tháng 4/2026 đạt 99.97%. Chi tiết báo cáo có tại trang Trạng thái Hệ thống.' },
-            { title: 'Thay đổi Điều khoản sử dụng', message: 'Điều khoản sử dụng dịch vụ Chào Market đã cập nhật hiệu lực từ 15/05/2026. Xem chi tiết trong Cài đặt.' },
+            { title: 'Thay đổi Điều khoản sử dụng', message: 'Điều khoản sử dụng dịch vụ đã cập nhật hiệu lực từ 15/05/2026. Xem chi tiết trong Cài đặt.' },
             { title: 'Hệ thống đã khôi phục', message: 'Sự cố gián đoạn dịch vụ lúc 14:20 ngày 29/04/2026 đã được khắc phục. Xin lỗi vì sự bất tiện.' },
             { title: 'Cập nhật giao diện mới', message: 'Trang quản lý tài khoản đã được thiết kế lại với giao diện hiện đại hơn. Khám phá ngay!' },
             { title: 'Bảo trì máy chủ thanh toán', message: 'Máy chủ thanh toán sẽ bảo trì từ 00:00 - 02:00 ngày 03/05/2026. Vui lòng hoàn tất giao dịch trước thời gian này.' },
@@ -184,7 +264,7 @@ function generateMockNotifications(): NotificationItem[] {
             { title: 'Thanh toán thành công', message: 'Giao dịch 500.000 VNĐ cho gói đăng ký Premium đã được xử lý thành công. Hóa đơn điện tử đã gửi về email của bạn.' },
             { title: 'Đơn hàng #CM-20260428 đang giao', message: 'Đơn hàng của bạn đang được giao. Dự kiến nhận hàng vào 17:00 ngày 29/04/2026. Theo dõi tại mục Đơn hàng.' },
             { title: 'Hoàn tiền thành công', message: 'Yêu cầu hoàn tiền 350.000 VNĐ cho đơn #CM-20260425 đã xử lý. Số tiền sẽ về tài khoản trong 3-5 ngày.' },
-            { title: 'Đơn hàng #CM-20260427 đã hoàn tất', message: 'Đơn hàng thuê xe Toyota Camry ngày 27/04/2026 đã hoàn tất. Cảm ơn bạn đã sử dụng Chào Market!' },
+            { title: 'Đơn hàng #CM-20260427 đã hoàn tất', message: 'Đơn hàng thuê xe Toyota Camry ngày 27/04/2026 đã hoàn tất. Cảm ơn bạn đã sử dụng dịch vụ!' },
             { title: 'Đánh giá đơn hàng', message: 'Hãy đánh giá trải nghiệm thuê xe Honda City ngày 26/04/2026 để nhận 50 điểm thưởng.' },
             { title: 'Đơn hàng #CM-20260501 mới tạo', message: 'Đơn hàng thuê xe Mercedes C200 từ ngày 01/05 đến 03/05/2026 đã được tạo. Chờ xác nhận từ chủ xe.' },
             { title: 'Gia hạn thuê xe thành công', message: 'Đơn thuê xe #CM-20260429 đã gia hạn thêm 2 ngày. Tổng chi phí bổ sung: 1.200.000 VNĐ.' },
@@ -223,6 +303,7 @@ export default function NotificationsPage() {
     const { status } = useSession();
     const router = useRouter();
     const { t } = useI18n();
+    usePageTitle('account.notification');
     const typeConfig = useTypeConfig();
     const timeAgo = useTimeAgo();
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -239,7 +320,7 @@ export default function NotificationsPage() {
 
     useEffect(() => {
         if (status === 'unauthenticated') {
-            router.push('/auth/login?callbackUrl=/account/notifications');
+            router.push('/auth/login?callbackUrl=/notifications');
             return;
         }
         if (status === 'authenticated') {
@@ -326,14 +407,14 @@ export default function NotificationsPage() {
 
     type FilterKey = typeof filter;
     const filterOptions: { key: FilterKey; label: string; icon: React.ReactNode }[] = [
-        { key: 'all', label: t('notifications.filter.all'), icon: <Filter className="size-3.5" /> },
-        { key: 'unread', label: t('notifications.unread'), icon: <MailOpen className="size-3.5" /> },
-        { key: 'read', label: t('notifications.read'), icon: <MailCheck className="size-3.5" /> },
-        { key: 'starred', label: t('notifications.filter.starred'), icon: <Star className="size-3.5" /> },
-        { key: 'security', label: t('notifications.type.security'), icon: <Shield className="size-3.5" /> },
-        { key: 'system', label: t('notifications.type.system'), icon: <Settings className="size-3.5" /> },
-        { key: 'account', label: t('notifications.type.account'), icon: <Info className="size-3.5" /> },
-        { key: 'order', label: t('notifications.type.order'), icon: <ShoppingBag className="size-3.5" /> },
+        { key: 'all', label: t('notifications.filter.all'), icon: <Filter className="size-3.5 text-current" /> },
+        { key: 'unread', label: t('notifications.unread'), icon: <MailOpen className="size-3.5 text-current" /> },
+        { key: 'read', label: t('notifications.read'), icon: <MailCheck className="size-3.5 text-current" /> },
+        { key: 'starred', label: t('notifications.filter.starred'), icon: <Star className="size-3.5 text-current" /> },
+        { key: 'security', label: t('notifications.type.security'), icon: <Shield className="size-3.5 text-current" /> },
+        { key: 'system', label: t('notifications.type.system'), icon: <Settings className="size-3.5 text-current" /> },
+        { key: 'account', label: t('notifications.type.account'), icon: <Info className="size-3.5 text-current" /> },
+        { key: 'order', label: t('notifications.type.order'), icon: <ShoppingBag className="size-3.5 text-current" /> },
     ];
 
     if (loading || status === 'loading') {
@@ -363,7 +444,7 @@ export default function NotificationsPage() {
                                 'transition-all duration-300 ease-in-out',
                                 filter === 'all'
                                     ? 'text-black/70 dark:text-white/70 hover:text-black dark:hover:text-white'
-                                    : 'text-black dark:text-[var(--brand-color)]',
+                                    : 'text-black dark:text-white',
                             )}
                         >
                             {filterOptions.find(o => o.key === filter)?.label}
@@ -386,8 +467,8 @@ export default function NotificationsPage() {
                                     'hover:bg-transparent! focus:bg-transparent!',
                                     'transition-colors! duration-200 ease-in-out',
                                     filter === opt.key
-                                        ? 'font-semibold text-black dark:text-[var(--brand-color)] [&>svg]:text-black dark:[&>svg]:text-[var(--brand-color)]'
-                                        : 'font-normal text-[var(--brand-grey-foreground)] hover:text-black dark:hover:text-[var(--brand-color)] [&>svg]:text-[var(--brand-grey-foreground)] hover:[&>svg]:text-black dark:hover:[&>svg]:text-[var(--brand-color)]',
+                                        ? 'font-semibold text-black dark:text-white'
+                                        : 'font-normal text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white',
                                 )}
                             >
                                 {opt.icon}
@@ -403,17 +484,17 @@ export default function NotificationsPage() {
 
             <Card className="page-card overflow-hidden">
                 <CardContent className="p-0">
-                    {/* Table Header */}
-                    <div className="flex items-center gap-3 px-3 py-2.5 border-b border-border/40 dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.02]">
+                    {/* Table Header (Desktop only) */}
+                    <div className="hidden md:flex items-center gap-3 px-3 py-2.5 border-b border-border/40 dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.02]">
                         <div className="flex-shrink-0" style={{ width: '20px' }} />
                         <div
                             className="grid flex-1 min-w-0 items-center"
                             style={{ gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 4fr) minmax(0, 1fr) minmax(0, 1.2fr)', gap: '0 16px' }}
                         >
-                            <span className="text-[16px] font-semibold text-black/80 dark:text-white/80 capitalize">{t('notifications.col.title')}</span>
-                            <span className="text-[16px] font-semibold text-black/80 dark:text-white/80 capitalize">{t('notifications.col.content')}</span>
-                            <span className="text-[16px] font-semibold text-black/80 dark:text-white/80 capitalize">{t('notifications.col.type')}</span>
-                            <span className="text-[16px] font-semibold text-black/80 dark:text-white/80 capitalize">{t('notifications.col.time')}</span>
+                            <span className="text-[13px] font-semibold uppercase tracking-wider text-black/40 dark:text-white/40">{t('notifications.col.title')}</span>
+                            <span className="text-[13px] font-semibold uppercase tracking-wider text-black/40 dark:text-white/40">{t('notifications.col.content')}</span>
+                            <span className="text-[13px] font-semibold uppercase tracking-wider text-black/40 dark:text-white/40">{t('notifications.col.type')}</span>
+                            <span className="text-[13px] font-semibold uppercase tracking-wider text-black/40 dark:text-white/40">{t('notifications.col.time')}</span>
                         </div>
                     </div>
 
@@ -429,23 +510,38 @@ export default function NotificationsPage() {
                             {unreadList.length > 0 && (
                                 <Collapsible defaultOpen>
                                     <CollapsibleTrigger className="flex items-center gap-2 w-full px-4 py-3 border-b border-border/40 dark:border-white/[0.08] cursor-pointer group">
-                                        <span className="text-[15px] font-bold text-black dark:text-white tracking-tight group-hover:text-[var(--brand-color)] transition-colors duration-200">
+                                        <span className="text-[15px] font-bold text-black dark:text-white tracking-tight group-hover:text-black/70 dark:group-hover:text-white/70 transition-colors duration-200">
                                             {t('notifications.unread')} ({unreadList.length})
                                         </span>
-                                        <ChevronDown className="size-4 text-black dark:text-white group-hover:text-[var(--brand-color)] transition-all duration-200 group-data-[state=closed]:-rotate-90" />
+                                        <ChevronDown className="size-4 text-black dark:text-white group-hover:text-black/70 dark:group-hover:text-white/70 transition-all duration-200 group-data-[state=closed]:-rotate-90" />
                                     </CollapsibleTrigger>
                                     <CollapsibleContent className="animate-collapsible-down data-[state=closed]:animate-collapsible-up">
-                                        {unreadList.slice(0, showUnread).map(n => (
-                                            <NotificationRow
-                                                key={n.id}
-                                                notification={n}
-                                                unread
-                                                onClickRow={() => handleClick(n)}
-                                                onToggleStar={(e) => handleToggleStar(n, e)}
-                                                typeConfig={typeConfig}
-                                                timeAgo={timeAgo}
-                                            />
-                                        ))}
+                                        <div className="hidden md:block">
+                                            {unreadList.slice(0, showUnread).map(n => (
+                                                <NotificationRow
+                                                    key={n.id}
+                                                    notification={n}
+                                                    unread
+                                                    onClickRow={() => handleClick(n)}
+                                                    onToggleStar={(e) => handleToggleStar(n, e)}
+                                                    typeConfig={typeConfig}
+                                                    timeAgo={timeAgo}
+                                                />
+                                            ))}
+                                        </div>
+                                        <div className="md:hidden">
+                                            {unreadList.slice(0, showUnread).map(n => (
+                                                <NotificationCard
+                                                    key={n.id}
+                                                    notification={n}
+                                                    unread
+                                                    onClickRow={() => handleClick(n)}
+                                                    onToggleStar={(e) => handleToggleStar(n, e)}
+                                                    typeConfig={typeConfig}
+                                                    timeAgo={timeAgo}
+                                                />
+                                            ))}
+                                        </div>
                                         {showUnread < unreadList.length && (
                                             <button
                                                 onClick={() => setShowUnread(prev => prev + ITEMS_PER_PAGE)}
@@ -468,17 +564,32 @@ export default function NotificationsPage() {
                                         <ChevronDown className="size-4 text-black/40 dark:text-white/40 group-hover:text-black/70 dark:group-hover:text-white/70 transition-all duration-200 group-data-[state=closed]:-rotate-90" />
                                     </CollapsibleTrigger>
                                     <CollapsibleContent className="animate-collapsible-down data-[state=closed]:animate-collapsible-up">
-                                        {readList.slice(0, showRead).map(n => (
-                                            <NotificationRow
-                                                key={n.id}
-                                                notification={n}
-                                                unread={false}
-                                                onClickRow={() => handleClick(n)}
-                                                onToggleStar={(e) => handleToggleStar(n, e)}
-                                                typeConfig={typeConfig}
-                                                timeAgo={timeAgo}
-                                            />
-                                        ))}
+                                        <div className="hidden md:block">
+                                            {readList.slice(0, showRead).map(n => (
+                                                <NotificationRow
+                                                    key={n.id}
+                                                    notification={n}
+                                                    unread={false}
+                                                    onClickRow={() => handleClick(n)}
+                                                    onToggleStar={(e) => handleToggleStar(n, e)}
+                                                    typeConfig={typeConfig}
+                                                    timeAgo={timeAgo}
+                                                />
+                                            ))}
+                                        </div>
+                                        <div className="md:hidden">
+                                            {readList.slice(0, showRead).map(n => (
+                                                <NotificationCard
+                                                    key={n.id}
+                                                    notification={n}
+                                                    unread={false}
+                                                    onClickRow={() => handleClick(n)}
+                                                    onToggleStar={(e) => handleToggleStar(n, e)}
+                                                    typeConfig={typeConfig}
+                                                    timeAgo={timeAgo}
+                                                />
+                                            ))}
+                                        </div>
                                         {showRead < readList.length && (
                                             <button
                                                 onClick={() => setShowRead(prev => prev + ITEMS_PER_PAGE)}

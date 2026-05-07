@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { uploadAvatar } from '@/services/storage/upload-avatar';
+import { logger, sendToLogtail } from '@/lib/logger';
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -44,7 +45,8 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ url: result.url });
     } catch (error) {
-        console.error('Avatar upload error:', error);
+        logger.error({ err: error, userId: session.user.id }, 'Avatar upload error');
+        sendToLogtail('error', 'Avatar upload failed', { userId: session.user.id, error: String(error) });
         return NextResponse.json({ message: 'Upload failed' }, { status: 500 });
     }
 }

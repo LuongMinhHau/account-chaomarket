@@ -117,12 +117,12 @@ export function NavUser() {
                                 }
                             >
                                 <div className="relative">
-                                    <Avatar className="h-8 w-8 rounded-lg">
+                                    <Avatar className="h-8 w-8 rounded-full">
                                         <AvatarImage
                                             src={user.avatar}
                                             alt={user.name}
                                         />
-                                        <AvatarFallback className="rounded-lg bg-black text-sm font-semibold dark:text-[var(--brand-color)] text-[var(--brand-color)]">
+                                        <AvatarFallback className="rounded-full bg-black text-sm font-semibold dark:text-[var(--brand-color)] text-[var(--brand-color)]">
                                             {user.name[0]}
                                         </AvatarFallback>
                                     </Avatar>

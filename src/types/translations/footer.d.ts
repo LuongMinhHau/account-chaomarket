@@ -40,7 +40,10 @@ export interface FooterTranslations {
     privacyPolicy: PolicyContent;
     cookiePolicy: PolicyContent;
     supportPolicy: PolicyContent;
-    getToKnowUs: string;
+    returnPolicy: { title: string };
+    chaoHelp: { title: string };
+    legalAndSupport: string;
+    legal: string;
     followUs: string;
     joinGroup: string;
     copyright: string;

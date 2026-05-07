@@ -10,7 +10,7 @@ export default function SocialLogin() {
     const { t } = useI18n();
 
     const handleSocialLogin = (provider: string) => {
-        const callbackUrl = searchParams.get('callbackUrl') || '/account';
+        const callbackUrl = searchParams.get('callbackUrl') || '/profile';
         signIn(provider, { callbackUrl });
     };
 

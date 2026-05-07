@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/next-auth.config';
 import { db } from '@/lib/db';
 import { notifications } from '@/db/schema';
 import { eq, desc, inArray } from 'drizzle-orm';
+import { logger, sendToLogtail } from '@/lib/logger';
 
 export async function GET() {
     const session = await getServerSession(authOptions);
@@ -21,7 +22,7 @@ export async function GET() {
 
         return NextResponse.json({ notifications: items });
     } catch (error) {
-        console.error('Notifications fetch error:', error);
+        logger.error({ err: error }, 'Notifications fetch error'); sendToLogtail('error', 'Notifications fetch failed', { error: String(error) });
         return NextResponse.json({ notifications: [] });
     }
 }
@@ -65,7 +66,7 @@ export async function PUT(request: NextRequest) {
 
         return NextResponse.json({ message: 'Updated' });
     } catch (error) {
-        console.error('Notification update error:', error);
+        logger.error({ err: error }, 'Notification update error'); sendToLogtail('error', 'Notification update failed', { error: String(error) });
         return NextResponse.json({ message: 'Failed to update' }, { status: 500 });
     }
 }

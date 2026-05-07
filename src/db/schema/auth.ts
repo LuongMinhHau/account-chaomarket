@@ -35,6 +35,7 @@ export const users = pgTable(
         totpSecret: text(),
         totpEnabled: boolean().default(false).notNull(),
         backupCodes: text(), // JSON array of hashed backup codes
+        loginVerification: boolean().default(false).notNull(), // Require email OTP on every login
     },
     table => [unique('user_email_unique').on(table.email)]
 );

@@ -3,13 +3,12 @@
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import {
-    Shield,
+    ShieldCheck,
     CheckCircle2,
     AlertTriangle,
     Loader2,
     Copy,
     Download,
-    KeyRound,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,13 +22,19 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import LoadingSpinner from '@/components/loading-spinner';
+import PageHeader from '@/components/page-header';
 import { useRouter } from 'next/navigation';
+
+import { useI18n } from '@/context/i18n/context';
+import { usePageTitle } from '@/hooks/use-page-title';
 
 type Step = 'status' | 'qr' | 'verify' | 'backup' | 'done';
 
 export default function TwoFactorPage() {
     const { status } = useSession();
     const router = useRouter();
+    const { t } = useI18n();
+    usePageTitle('twoFactor.title');
 
     const [loading, setLoading] = useState(true);
     const [enabled, setEnabled] = useState(false);
@@ -45,7 +50,7 @@ export default function TwoFactorPage() {
 
     useEffect(() => {
         if (status === 'unauthenticated') {
-            router.push('/auth/login?callbackUrl=/account/security/two-factor');
+            router.push('/auth/login?callbackUrl=/security/two-factor');
             return;
         }
         if (status === 'authenticated') {
@@ -69,13 +74,13 @@ export default function TwoFactorPage() {
             setQrCode(data.qrCode);
             setSecret(data.secret);
         } catch {
-            setError('Không thể tạo mã QR');
+            setError(t('twoFactor.setup.qrError'));
         }
     };
 
     const verifyAndEnable = async () => {
         if (verifyCode.length !== 6) {
-            setError('Mã phải có 6 chữ số');
+            setError(t('twoFactor.setup.codeLength'));
             return;
         }
         setVerifying(true);
@@ -92,10 +97,10 @@ export default function TwoFactorPage() {
                 setEnabled(true);
                 setStep('backup');
             } else {
-                setError(data.message || 'Mã không hợp lệ');
+                setError(data.message || t('twoFactor.setup.invalidCode'));
             }
         } catch {
-            setError('Lỗi xác thực');
+            setError(t('twoFactor.setup.verifyError'));
         } finally {
             setVerifying(false);
         }
@@ -120,12 +125,12 @@ export default function TwoFactorPage() {
     };
 
     const downloadBackupCodes = () => {
-        const text = `Chào Market — Backup Codes\n${'='.repeat(30)}\n\n${backupCodes.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n\nLưu ý: Mỗi mã chỉ sử dụng được 1 lần.`;
+        const text = `Chào Account — Backup Codes\n${'='.repeat(30)}\n\n${backupCodes.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n\n${t('twoFactor.backup.saveNote')}`;
         const blob = new Blob([text], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'chao-market-backup-codes.txt';
+        a.download = 'chao-account-backup-codes.txt';
         a.click();
         URL.revokeObjectURL(url);
     };
@@ -139,31 +144,31 @@ export default function TwoFactorPage() {
     }
 
     return (
-        <div className="w-full h-full mx-auto space-y-6">
-            <Card className="bg-transparent">
-                <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                            <KeyRound className="size-5 text-[var(--brand-color)]" />
-                            <h3 className="text-lg font-semibold">Xác Thực 2 Bước (2FA)</h3>
-                        </div>
-                        <a
-                            href="/account/security"
-                            className="text-[13px] font-medium text-[var(--brand-color)] hover:underline"
-                        >
-                            ← Bảo mật
-                        </a>
-                    </div>
+        <div className="w-full h-full mx-auto space-y-4">
+            <button
+                onClick={() => router.back()}
+                className="text-[13px] font-medium text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white transition-colors duration-200 cursor-pointer"
+            >
+                ← {t('twoFactor.back')}
+            </button>
+            <PageHeader
+                title={t('twoFactor.title')}
+            />
 
-                    {/* Status */}
+            <Card className="page-card">
+                <CardContent className="p-6">
+
+                    {/* Status: Not enabled */}
                     {step === 'status' && !enabled && (
                         <div className="space-y-4">
-                            <div className="flex items-center gap-3 p-4 rounded-xl border border-amber-500/30 bg-amber-500/5">
-                                <AlertTriangle className="size-6 text-amber-500 flex-shrink-0" />
+                            <div className="flex items-center gap-3 p-4 rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02]">
+                                <div className="size-10 rounded-lg flex items-center justify-center bg-black/[0.05] dark:bg-white/[0.06] text-black/60 dark:text-white/60 flex-shrink-0">
+                                    <AlertTriangle className="size-5" />
+                                </div>
                                 <div>
-                                    <p className="font-semibold text-[15px]">2FA chưa được bật</p>
-                                    <p className="text-[13px] text-muted-foreground">
-                                        Bật xác thực 2 bước để bảo vệ tài khoản bằng ứng dụng xác thực (Google Authenticator, Authy).
+                                    <p className="font-semibold text-[15px] text-black/90 dark:text-white/90">{t('twoFactor.status.disabled')}</p>
+                                    <p className="text-[13px] text-black/50 dark:text-white/50">
+                                        {t('twoFactor.status.disabledDescription')}
                                     </p>
                                 </div>
                             </div>
@@ -171,8 +176,8 @@ export default function TwoFactorPage() {
                                 onClick={startSetup}
                                 className="w-full bg-[var(--brand-color)] text-black font-semibold rounded-lg hover:bg-[var(--brand-color)]/90 transition-all duration-300"
                             >
-                                <Shield className="size-4 mr-2" />
-                                Bật Xác Thực 2 Bước
+                                <ShieldCheck className="size-4 mr-2" />
+                                {t('twoFactor.setup.enable')}
                             </Button>
                         </div>
                     )}
@@ -180,8 +185,8 @@ export default function TwoFactorPage() {
                     {/* QR Code Step */}
                     {step === 'qr' && (
                         <div className="space-y-5">
-                            <p className="text-sm text-muted-foreground">
-                                Quét mã QR bên dưới bằng ứng dụng xác thực (Google Authenticator, Authy, etc.)
+                            <p className="text-[14px] text-black/60 dark:text-white/60">
+                                {t('twoFactor.setup.scanQr')}
                             </p>
 
                             {qrCode ? (
@@ -192,18 +197,18 @@ export default function TwoFactorPage() {
                                     </div>
 
                                     <div className="w-full max-w-sm">
-                                        <p className="text-[13px] text-muted-foreground mb-1.5">
-                                            Hoặc nhập mã thủ công:
+                                        <p className="text-[13px] text-black/40 dark:text-white/40 mb-1.5">
+                                            {t('twoFactor.setup.manualEntry')}
                                         </p>
                                         <div className="flex items-center gap-2">
-                                            <code className="flex-1 px-3 py-2 bg-muted rounded-lg text-sm font-mono truncate">
+                                            <code className="flex-1 px-3 py-2 bg-black/[0.03] dark:bg-white/[0.04] border border-black/10 dark:border-white/10 rounded-lg text-[13px] font-mono truncate text-black/80 dark:text-white/80">
                                                 {secret}
                                             </code>
                                             <Button
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={copySecret}
-                                                className="flex-shrink-0"
+                                                className="flex-shrink-0 border-black/15 dark:border-white/15"
                                             >
                                                 <Copy className="size-3.5" />
                                             </Button>
@@ -212,7 +217,7 @@ export default function TwoFactorPage() {
                                 </div>
                             ) : (
                                 <div className="flex justify-center py-8">
-                                    <Loader2 className="size-8 animate-spin text-muted-foreground" />
+                                    <Loader2 className="size-8 animate-spin text-black/30 dark:text-white/30" />
                                 </div>
                             )}
 
@@ -220,7 +225,7 @@ export default function TwoFactorPage() {
                                 onClick={() => { setStep('verify'); setError(''); }}
                                 className="w-full bg-[var(--brand-color)] text-black font-semibold rounded-lg"
                             >
-                                Tiếp tục →
+                                {t('twoFactor.setup.continue')}
                             </Button>
                         </div>
                     )}
@@ -228,8 +233,8 @@ export default function TwoFactorPage() {
                     {/* Verify Code Step */}
                     {step === 'verify' && (
                         <div className="space-y-5">
-                            <p className="text-sm text-muted-foreground">
-                                Nhập mã 6 chữ số từ ứng dụng xác thực để xác nhận.
+                            <p className="text-[14px] text-black/60 dark:text-white/60">
+                                {t('twoFactor.setup.enterCode')}
                             </p>
 
                             <div className="max-w-xs mx-auto space-y-3">
@@ -248,13 +253,13 @@ export default function TwoFactorPage() {
                                         'bg-transparent border rounded-xl outline-none transition-all',
                                         error
                                             ? 'border-red-500 text-red-500'
-                                            : 'border-border focus:border-[var(--brand-color)]',
+                                            : 'border-black/15 dark:border-white/15 focus:border-black/40 dark:focus:border-white/40',
                                     )}
                                     autoFocus
                                 />
 
                                 {error && (
-                                    <p className="text-sm text-red-500 text-center">{error}</p>
+                                    <p className="text-[13px] text-red-500 text-center">{error}</p>
                                 )}
                             </div>
 
@@ -262,22 +267,22 @@ export default function TwoFactorPage() {
                                 <Button
                                     variant="ghost"
                                     onClick={() => { setStep('qr'); setError(''); setVerifyCode(''); }}
-                                    className="flex-1 border border-border"
+                                    className="flex-1 border border-black/15 dark:border-white/15 bg-transparent"
                                 >
-                                    ← Quay lại
+                                    {t('twoFactor.setup.back')}
                                 </Button>
                                 <Button
                                     onClick={verifyAndEnable}
                                     disabled={verifyCode.length !== 6 || verifying}
                                     className={cn(
-                                        'flex-1 font-semibold rounded-lg transition-all',
+                                        'flex-1 font-semibold rounded-lg transition-all duration-300',
                                         verifyCode.length === 6 && !verifying
                                             ? 'bg-[var(--brand-color)] text-black hover:bg-[var(--brand-color)]/90'
-                                            : 'bg-muted text-muted-foreground cursor-not-allowed',
+                                            : 'bg-neutral-300 dark:bg-neutral-700 text-neutral-500 dark:text-white cursor-not-allowed',
                                     )}
                                 >
                                     {verifying ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
-                                    Xác nhận
+                                    {t('twoFactor.setup.confirm')}
                                 </Button>
                             </div>
                         </div>
@@ -286,23 +291,23 @@ export default function TwoFactorPage() {
                     {/* Backup Codes Step */}
                     {step === 'backup' && (
                         <div className="space-y-5">
-                            <div className="flex items-center gap-3 p-4 rounded-xl border border-green-500/30 bg-green-500/5">
-                                <CheckCircle2 className="size-6 text-green-500 flex-shrink-0" />
+                            <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-muted/50">
+                                <CheckCircle2 className="size-5 text-black dark:text-[var(--brand-color)] flex-shrink-0" />
                                 <div>
-                                    <p className="font-semibold text-[15px] text-green-600 dark:text-green-400">
-                                        2FA đã được bật thành công!
+                                    <p className="font-semibold text-[15px] text-black/90 dark:text-white/90">
+                                        {t('twoFactor.backup.success')}
                                     </p>
-                                    <p className="text-[13px] text-muted-foreground">
-                                        Lưu lại các mã dự phòng bên dưới. Mỗi mã chỉ dùng được 1 lần.
+                                    <p className="text-[13px] text-black/50 dark:text-white/50">
+                                        {t('twoFactor.backup.saveNote')}
                                     </p>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2 p-4 rounded-xl bg-muted/50 border border-border/50">
+                            <div className="grid grid-cols-2 gap-2 p-4 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/10 dark:border-white/10">
                                 {backupCodes.map((code, i) => (
                                     <div
                                         key={i}
-                                        className="font-mono text-sm px-3 py-2 rounded-lg bg-background border text-center"
+                                        className="font-mono text-[13px] px-3 py-2 rounded-lg bg-white dark:bg-white/[0.04] border border-black/10 dark:border-white/10 text-center text-black/80 dark:text-white/80"
                                     >
                                         {code}
                                     </div>
@@ -313,18 +318,18 @@ export default function TwoFactorPage() {
                                 <Button
                                     variant="outline"
                                     onClick={() => navigator.clipboard.writeText(backupCodes.join('\n'))}
-                                    className="flex-1"
+                                    className="flex-1 border-black/15 dark:border-white/15"
                                 >
                                     <Copy className="size-4 mr-2" />
-                                    Sao chép
+                                    {t('twoFactor.backup.copy')}
                                 </Button>
                                 <Button
                                     variant="outline"
                                     onClick={downloadBackupCodes}
-                                    className="flex-1"
+                                    className="flex-1 border-black/15 dark:border-white/15"
                                 >
                                     <Download className="size-4 mr-2" />
-                                    Tải xuống
+                                    {t('twoFactor.backup.download')}
                                 </Button>
                             </div>
 
@@ -332,7 +337,7 @@ export default function TwoFactorPage() {
                                 onClick={() => setStep('done')}
                                 className="w-full bg-[var(--brand-color)] text-black font-semibold rounded-lg"
                             >
-                                Hoàn tất
+                                {t('twoFactor.backup.done')}
                             </Button>
                         </div>
                     )}
@@ -340,14 +345,14 @@ export default function TwoFactorPage() {
                     {/* Done / Enabled State */}
                     {step === 'done' && enabled && (
                         <div className="space-y-4">
-                            <div className="flex items-center gap-3 p-4 rounded-xl border border-green-500/30 bg-green-500/5">
-                                <CheckCircle2 className="size-6 text-green-500 flex-shrink-0" />
+                            <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-muted/50">
+                                <CheckCircle2 className="size-5 text-black dark:text-[var(--brand-color)] flex-shrink-0" />
                                 <div>
-                                    <p className="font-semibold text-[15px] text-green-600 dark:text-green-400">
-                                        Xác thực 2 bước đã bật
+                                    <p className="font-semibold text-[15px] text-black/90 dark:text-white/90">
+                                        {t('twoFactor.status.enabled')}
                                     </p>
-                                    <p className="text-[13px] text-muted-foreground">
-                                        Tài khoản của bạn được bảo vệ bằng ứng dụng xác thực.
+                                    <p className="text-[13px] text-black/50 dark:text-white/50">
+                                        {t('twoFactor.status.enabledDescription')}
                                     </p>
                                 </div>
                             </div>
@@ -355,9 +360,9 @@ export default function TwoFactorPage() {
                             <Button
                                 variant="outline"
                                 onClick={() => setShowDisableDialog(true)}
-                                className="border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/10"
+                                className="border-black/15 dark:border-white/15 text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"
                             >
-                                Tắt Xác Thực 2 Bước
+                                {t('twoFactor.disable.button')}
                             </Button>
                         </div>
                     )}
@@ -366,31 +371,31 @@ export default function TwoFactorPage() {
 
             {/* Disable Dialog */}
             <Dialog open={showDisableDialog} onOpenChange={setShowDisableDialog}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md bg-background border-border">
                     <DialogHeader>
-                        <DialogTitle className="text-red-600 dark:text-red-400 flex items-center gap-2">
-                            <AlertTriangle className="size-5" />
-                            Tắt Xác Thực 2 Bước
+                        <DialogTitle className="text-[18px] font-semibold flex items-center gap-2">
+                            <AlertTriangle className="size-5 text-black/60 dark:text-white/60" />
+                            {t('twoFactor.disable.title')}
                         </DialogTitle>
-                        <DialogDescription className="text-[15px] mt-2">
-                            Bạn có chắc chắn muốn tắt 2FA? Tài khoản sẽ kém an toàn hơn.
+                        <DialogDescription className="text-[14px] mt-2 text-black/60 dark:text-white/60">
+                            {t('twoFactor.disable.description')}
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="flex gap-3 mt-2">
                         <Button
                             variant="ghost"
                             onClick={() => setShowDisableDialog(false)}
-                            className="border border-neutral-300 dark:border-neutral-600"
+                            className="border border-black/15 dark:border-white/15 bg-transparent"
                         >
-                            Hủy
+                            {t('twoFactor.disable.cancel')}
                         </Button>
                         <Button
                             onClick={disable2FA}
                             disabled={disabling}
-                            className="bg-red-600 text-white hover:bg-red-700 border-0"
+                            className="bg-[var(--brand-color)] text-black font-semibold hover:bg-[var(--brand-color)]/90 border-0"
                         >
                             {disabling && <Loader2 className="size-4 animate-spin mr-2" />}
-                            Xác nhận tắt
+                            {t('twoFactor.disable.confirm')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

@@ -403,7 +403,7 @@ function baseLayout(
           <tr>
             <td style="padding:20px 0 0;">
               <p style="color:#86888a;font-size:12px;line-height:1.6;margin:0;text-align:center;">
-                © ${year} Chào Market · <a href="https://trading.chaomarket.com" style="color:#86888a;text-decoration:none;">chaomarket.com</a>
+                © ${year} Chào Market · <a href="https://account.chaomarket.com" style="color:#86888a;text-decoration:none;">chaomarket.com</a>
               </p>
             </td>
           </tr>
@@ -683,7 +683,7 @@ export function welcomeEmail(
         </ul>
       </div>
       <div style="text-align:center;margin:24px 0;">
-        <a href="https://trading.chaomarket.com" style="display:inline-block;background-color:#FFE400;color:#1a1a1a;font-size:14px;font-weight:700;padding:10px 24px;border-radius:6px;text-decoration:none;letter-spacing:0.3px;border:1px solid #999;">${tr.cta}</a>
+        <a href="https://account.chaomarket.com" style="display:inline-block;background-color:#FFE400;color:#1a1a1a;font-size:14px;font-weight:700;padding:10px 24px;border-radius:6px;text-decoration:none;letter-spacing:0.3px;border:1px solid #999;">${tr.cta}</a>
       </div>
       <p style="color:#333;font-size:15px;line-height:1.6;margin:0;">${tr.closing}</p>
     `,
@@ -800,7 +800,7 @@ export function paymentConfirmationEmail(
       <p style="color:#666;font-size:13px;margin:0 0 16px;">${timestamp}</p>
       <p style="color:#333;font-size:14px;line-height:1.6;margin:0 0 16px;font-weight:600;">${tr.accessNote}</p>
       <div style="text-align:center;margin:20px 0;">
-        <a href="https://trading.chaomarket.com/account?tab=order-history" style="display:inline-block;background-color:#FFE400;color:#1a1a1a;font-size:14px;font-weight:700;padding:10px 24px;border-radius:6px;text-decoration:none;letter-spacing:0.3px;border:1px solid #999;">${tr.cta}</a>
+        <a href="https://account.chaomarket.com/orders" style="display:inline-block;background-color:#FFE400;color:#1a1a1a;font-size:14px;font-weight:700;padding:10px 24px;border-radius:6px;text-decoration:none;letter-spacing:0.3px;border:1px solid #999;">${tr.cta}</a>
       </div>
       <p style="color:#333;font-size:15px;line-height:1.6;margin:0;">${tr.closing}</p>
     `,
@@ -867,7 +867,7 @@ export function consultationStatusUpdateEmail(
         </ul>
       </div>
       <div style="text-align:center;margin:20px 0;">
-        <a href="https://trading.chaomarket.com/account?tab=order-history" style="display:inline-block;background-color:#FFE400;color:#1a1a1a;font-size:14px;font-weight:700;padding:10px 24px;border-radius:6px;text-decoration:none;letter-spacing:0.3px;border:1px solid #999;">${tr.cta}</a>
+        <a href="https://account.chaomarket.com/orders" style="display:inline-block;background-color:#FFE400;color:#1a1a1a;font-size:14px;font-weight:700;padding:10px 24px;border-radius:6px;text-decoration:none;letter-spacing:0.3px;border:1px solid #999;">${tr.cta}</a>
       </div>
       <p style="color:#333;font-size:15px;line-height:1.6;margin:0;">${tr.closing}</p>
     `,

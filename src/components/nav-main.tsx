@@ -18,13 +18,15 @@ import {
 } from '@/components/ui/sidebar';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-// Create context to manage single open collapsible
+// Create context to manage multiple open collapsibles
 const CollapsibleContext = createContext<{
-    openItemId: string | null;
-    setOpenItemId: (id: string | null) => void;
+    openItemIds: Set<string>;
+    toggleItem: (id: string) => void;
+    openItem: (id: string) => void;
 }>({
-    openItemId: null,
-    setOpenItemId: () => {},
+    openItemIds: new Set(),
+    toggleItem: () => {},
+    openItem: () => {},
 });
 
 export function NavMain({
@@ -34,7 +36,7 @@ export function NavMain({
     items: {
         title: string;
         url: string;
-        icon: React.ForwardRefExoticComponent<
+        icon?: React.ForwardRefExoticComponent<
             Omit<LucideProps, 'ref'> & React.RefAttributes<SVGSVGElement>
         >;
         children?: {
@@ -67,27 +69,53 @@ export function NavMain({
         }
     }, [pathname, params]);
 
-    const [openItemId, setOpenItemId] = useState<string | null>(null);
+    const [openItemIds, setOpenItemIds] = useState<Set<string>>(new Set());
 
-    // Find which item should be open based on current path
+    const toggleItem = (id: string) => {
+        setOpenItemIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
+            return next;
+        });
+    };
+
+    const openItem = (id: string) => {
+        setOpenItemIds(prev => {
+            if (prev.has(id)) return prev;
+            const next = new Set(prev);
+            next.add(id);
+            return next;
+        });
+    };
+
+    // Auto-open the active item based on current path
     useEffect(() => {
         // Check main items
         const activeItem = items.find(item => {
             if (item.children) {
                 if (item.children.some(child => path.startsWith(child.url)))
                     return true;
-                // Parent-path prefix matching (e.g., /investment-calculators/profit-metrics/)
-                if (item.children.some(child => {
-                    const parentPath = child.url.split('/').slice(0, -1).join('/');
-                    return parentPath && path.startsWith(parentPath + '/');
-                })) return true;
+                if (
+                    item.children.some(child => {
+                        const parentPath = child.url
+                            .split('/')
+                            .slice(0, -1)
+                            .join('/');
+                        return parentPath && path.startsWith(parentPath + '/');
+                    })
+                )
+                    return true;
                 return path.startsWith(item.url);
             }
             return path.startsWith(item.url);
         });
 
         if (activeItem) {
-            setOpenItemId(activeItem.title);
+            openItem(activeItem.title);
             return;
         }
 
@@ -99,7 +127,7 @@ export function NavMain({
                     path.startsWith(child.url)
                 );
             if (isMemberActive) {
-                setOpenItemId(memberOnlyItem.title);
+                openItem(memberOnlyItem.title);
             }
         }
     }, [path, items, memberOnlyItem]);
@@ -108,22 +136,13 @@ export function NavMain({
 
     const handleMemberClick = () => {
         if (!memberOnlyItem) return;
-        if (path.startsWith('/members-only')) {
-            // We're already in members-only, toggle the collapsible
-            setOpenItemId(
-                openItemId === memberOnlyItem.title
-                    ? null
-                    : memberOnlyItem.title
-            );
-        } else {
-            // Navigate to first submenu and open
-            router.push(memberOnlyItem.url);
-            setOpenItemId(memberOnlyItem.title);
-        }
+        toggleItem(memberOnlyItem.title);
     };
 
     return (
-        <CollapsibleContext.Provider value={{ openItemId, setOpenItemId }}>
+        <CollapsibleContext.Provider
+            value={{ openItemIds, toggleItem, openItem }}
+        >
             <SidebarGroup className="sidebar-scroll">
                 <SidebarMenu className="sidebar-scroll">
                     {items.map(item => (
@@ -143,7 +162,7 @@ export function NavMain({
                     <SidebarMenu className="sidebar-scroll">
                         <Collapsible
                             asChild
-                            open={openItemId === memberOnlyItem.title}
+                            open={openItemIds.has(memberOnlyItem.title)}
                             className='group/collapsible [&>button[data-slot="collapsible-trigger"]]:rounded-none [&>button[data-active=true]]:border-l-6 dark:[&>button[data-active=true]]:border-[var(--brand-color)] [&>button[data-active=true]]:border-brand-text [&>button[data-active=true]]:rounded-none [&>button]:cursor-pointer dark:[&>button[data-active=true]]:bg-[var(--brand-color)]/5'
                         >
                             <SidebarMenuItem className={'font-medium'}>
@@ -183,7 +202,7 @@ export function NavMain({
                                         )}
                                         onClick={handleMemberClick}
                                         className={
-                                            'text-[16px] data-[active=true]:font-semibold'
+                                            'text-[15px] data-[active=true]:font-semibold'
                                         }
                                     >
                                         {memberOnlyItem.icon && (
@@ -315,7 +334,7 @@ function CollapsibleItem({
     item: {
         title: string;
         url: string;
-        icon: React.ForwardRefExoticComponent<
+        icon?: React.ForwardRefExoticComponent<
             Omit<LucideProps, 'ref'> & React.RefAttributes<SVGSVGElement>
         >;
         children?: {
@@ -327,7 +346,7 @@ function CollapsibleItem({
     allItems: {
         title: string;
         url: string;
-        icon: React.ForwardRefExoticComponent<
+        icon?: React.ForwardRefExoticComponent<
             Omit<LucideProps, 'ref'> & React.RefAttributes<SVGSVGElement>
         >;
         children?: {
@@ -339,9 +358,9 @@ function CollapsibleItem({
     const router = useRouter();
     const [hash, setHash] = useState('');
     const fullPath = path + hash;
-    const { openItemId, setOpenItemId } = useContext(CollapsibleContext);
+    const { openItemIds, toggleItem } = useContext(CollapsibleContext);
 
-    const isOpen = openItemId === item.title;
+    const isOpen = openItemIds.has(item.title);
 
     // Check if this item should be active, excluding paths claimed by more-specific sibling items
     const isItemActive = (() => {
@@ -350,10 +369,16 @@ function CollapsibleItem({
             if (item.children.some(child => path.startsWith(child.url)))
                 return true;
             // Parent-path prefix matching (e.g., /investment-calculators/profit-metrics/)
-            if (item.children.some(child => {
-                const parentPath = child.url.split('/').slice(0, -1).join('/');
-                return parentPath && path.startsWith(parentPath + '/');
-            })) return true;
+            if (
+                item.children.some(child => {
+                    const parentPath = child.url
+                        .split('/')
+                        .slice(0, -1)
+                        .join('/');
+                    return parentPath && path.startsWith(parentPath + '/');
+                })
+            )
+                return true;
             // Check if path starts with item.url but NOT with a more specific sibling's URL
             if (path.startsWith(item.url)) {
                 const moreSpecificSibling = allItems.find(
@@ -388,20 +413,8 @@ function CollapsibleItem({
 
     const handleClick = () => {
         if (item.children) {
-            // If it has children, check if we're on the same path
-            if (path.startsWith(item.url)) {
-                // We're on the same path, toggle the collapsible
-                if (isOpen) {
-                    setOpenItemId(null);
-                } else {
-                    setOpenItemId(item.title);
-                }
-            } else {
-                // We're on a different path, redirect first
-                router.push(item.url);
-                // Then open this item
-                setOpenItemId(item.title);
-            }
+            // Items with children: only toggle expand/collapse, never navigate
+            toggleItem(item.title);
         } else {
             // No children, just redirect
             router.push(item.url);
@@ -443,10 +456,10 @@ function CollapsibleItem({
                                 isActive={isItemActive}
                                 onClick={handleClick}
                                 className={
-                                    'text-[16px] data-[active=true]:font-semibold'
+                                    'text-[15px] data-[active=true]:font-semibold'
                                 }
                             >
-                                {item.icon && <item.icon className="size-4" />}
+                                {item.icon && <item.icon />}
                                 <span>{item.title}</span>
                                 <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                             </SidebarMenuButton>
@@ -459,15 +472,31 @@ function CollapsibleItem({
                                 {item.children.map((subItem, index) => {
                                     const isSubActive = (() => {
                                         // Exact match
-                                        if (path === subItem.url || fullPath === subItem.url) return true;
+                                        if (
+                                            path === subItem.url ||
+                                            fullPath === subItem.url
+                                        )
+                                            return true;
                                         // Prefix match on parent path (e.g., /investment-calculators/profit-metrics/)
                                         // Extract parent path up to the group level
-                                        const parentPath = subItem.url.split('/').slice(0, -1).join('/');
-                                        if (parentPath && path.startsWith(parentPath + '/')) {
+                                        const parentPath = subItem.url
+                                            .split('/')
+                                            .slice(0, -1)
+                                            .join('/');
+                                        if (
+                                            parentPath &&
+                                            path.startsWith(parentPath + '/')
+                                        ) {
                                             // Check no sibling has a more specific match
-                                            const moreSpecificSibling = item.children!.find(
-                                                s => s.url !== subItem.url && (path === s.url || path.startsWith(s.url + '/'))
-                                            );
+                                            const moreSpecificSibling =
+                                                item.children!.find(
+                                                    s =>
+                                                        s.url !== subItem.url &&
+                                                        (path === s.url ||
+                                                            path.startsWith(
+                                                                s.url + '/'
+                                                            ))
+                                                );
                                             return !moreSpecificSibling;
                                         }
                                         return false;
@@ -523,10 +552,10 @@ function CollapsibleItem({
                             <p className={'font-semibold'}>{item.title}</p>
                         }
                         className={
-                            'text-[16px] data-[active=true]:font-semibold'
+                            'text-[15px] data-[active=true]:font-semibold'
                         }
                     >
-                        {item.icon && <item.icon className="size-4" />}
+                        {item.icon && <item.icon />}
                         <span>{item.title}</span>
                     </SidebarMenuButton>
                 )}

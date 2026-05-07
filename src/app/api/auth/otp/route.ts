@@ -11,6 +11,7 @@ import type { RequestMeta } from '@/lib/email-templates';
 import type { EmailLocale } from '@/lib/get-email-locale';
 import { getEmailLocale } from '@/lib/get-email-locale';
 import { logAuditEvent } from '@/lib/audit-logger';
+import { logger, sendToLogtail } from '@/lib/logger';
 
 // Generate random 6-digit OTP using cryptographically secure randomness
 function generateOTP(): string {
@@ -141,7 +142,8 @@ export async function POST(request: NextRequest) {
             { status: 200 }
         );
     } catch (error) {
-        console.error('OTP generation error:', error);
+        logger.error({ err: error }, 'OTP generation error');
+        sendToLogtail('error', 'OTP generation failed', { error: String(error) });
         return NextResponse.json(
             { error: 'Failed to send OTP' },
             { status: 500 }
@@ -237,7 +239,8 @@ export async function PUT(request: NextRequest) {
                 });
             } catch (e) {
                 // Don't fail the verification if welcome email fails
-                console.error('Failed to send welcome email:', e);
+                logger.warn({ err: e, userId: user.id }, 'Failed to send welcome email');
+                sendToLogtail('warn', 'Welcome email failed', { userId: user.id, error: String(e) });
             }
         }
 
@@ -248,7 +251,8 @@ export async function PUT(request: NextRequest) {
             { status: 200 }
         );
     } catch (error) {
-        console.error('OTP verification error:', error);
+        logger.error({ err: error }, 'OTP verification error');
+        sendToLogtail('error', 'OTP verification failed', { error: String(error) });
         return NextResponse.json(
             { error: 'Failed to verify OTP' },
             { status: 500 }

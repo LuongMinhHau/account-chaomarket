@@ -18,6 +18,7 @@ import {
 import { getEmailLocale } from '@/lib/get-email-locale';
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
 import { logAuditEvent } from '@/lib/audit-logger';
+import { logger, sendToLogtail } from '@/lib/logger';
 
 // Generate random 6-digit OTP using cryptographically secure randomness
 function generateOTP(): string {
@@ -132,7 +133,7 @@ export async function POST(request: NextRequest) {
             { status: 200 }
         );
     } catch (error) {
-        console.error('Reset password request error:', error);
+        logger.error({ err: error }, 'Reset password request error'); sendToLogtail('error', 'Reset password request failed', { error: String(error) });
         return NextResponse.json<BaseResponse>(
             { message: 'Failed to process request' },
             { status: 500 }

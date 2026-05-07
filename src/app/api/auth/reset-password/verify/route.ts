@@ -7,6 +7,7 @@ import { BaseResponse } from '@/types/base-response';
 import { OTP_TYPE } from '@/app/api/auth/reset-password/constants';
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
 import { logAuditEvent } from '@/lib/audit-logger';
+import { logger, sendToLogtail } from '@/lib/logger';
 
 function hashOTP(otp: string): string {
     return createHash('sha256').update(otp).digest('hex');
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
             { status: 200 }
         );
     } catch (error) {
-        console.error('OTP verification error:', error);
+        logger.error({ err: error }, 'Reset password OTP verification error'); sendToLogtail('error', 'Reset password OTP verify failed', { error: String(error) });
         return NextResponse.json<BaseResponse>(
             { message: 'Failed to verify OTP' },
             { status: 500 }

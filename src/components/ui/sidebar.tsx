@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, VariantProps } from 'class-variance-authority';
-import { ArrowLeftToLine, PanelLeftIcon } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
@@ -233,7 +233,7 @@ function Sidebar({
 
     return (
         <div
-            className="group peer text-sidebar-foreground hidden md:block"
+            className="group peer text-sidebar-foreground hidden lg:block"
             data-state={state}
             data-collapsible={state === 'collapsed' ? collapsible : ''}
             data-variant={variant}
@@ -256,7 +256,7 @@ function Sidebar({
                 data-slot="sidebar-container"
                 className={cn(
                     'fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width]!' +
-                        ' duration-200 ease-linear md:flex',
+                        ' duration-200 ease-linear lg:flex',
                     side === 'left'
                         ? 'left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]'
                         : 'right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]',
@@ -285,21 +285,66 @@ function SidebarTrigger({
     onClick,
     ...props
 }: React.ComponentProps<typeof Button>) {
-    const { toggleSidebar } = useSidebar();
+    const { toggleSidebar, open } = useSidebar();
 
     return (
         <Button
             data-sidebar="trigger"
             data-slot="sidebar-trigger"
+            variant="ghost"
             size="icon"
-            className={cn('size-7', className)}
+            className={cn(
+                // ── Base: 24px circle, smooth transition ──
+                'size-6 rounded-full border',
+                'transition-all duration-200 ease-out',
+
+                // ── STATE 1: INACTIVE (expanded) ──
+                open && [
+                    'bg-white border-[var(--brand-separator)]/50',
+                    'text-[var(--brand-grey-foreground)]',
+                    'shadow-[0_1px_3px_rgba(0,0,0,0.06)]',
+                    'dark:bg-[var(--brand-grey)] dark:border-[var(--brand-separator)]/50',
+                    'dark:text-[var(--brand-grey-foreground)]',
+                    'dark:shadow-[0_1px_3px_rgba(0,0,0,0.2)]',
+                ],
+
+                // ── STATE 2: INACTIVE HOVER → fill brand ──
+                open && [
+                    'hover:bg-[var(--brand-color)] hover:border-[var(--brand-color)]',
+                    'hover:text-black',
+                    'dark:hover:bg-[var(--brand-color)] dark:hover:border-[var(--brand-color)]',
+                    'dark:hover:text-black',
+                ],
+
+                // ── STATE 3: ACTIVE (collapsed) → solid brand ──
+                !open && [
+                    'bg-[var(--brand-color)] border-[var(--brand-color)] text-black',
+                    'shadow-[0_2px_8px_rgba(255,228,0,0.3)]',
+                    'dark:bg-[var(--brand-color)] dark:border-[var(--brand-color)] dark:text-black',
+                    'dark:shadow-[0_2px_8px_rgba(255,228,0,0.3)]',
+                ],
+
+                // ── STATE 4: ACTIVE HOVER → darker brand ──
+                !open && [
+                    'hover:bg-[#e6cc00] hover:border-[#e6cc00]',
+                    'dark:hover:bg-[#e6cc00] dark:hover:border-[#e6cc00]',
+                ],
+
+                className
+            )}
             onClick={event => {
                 onClick?.(event);
                 toggleSidebar();
             }}
             {...props}
         >
-            <ArrowLeftToLine className="size-3" />
+            <ChevronLeft
+                className={cn(
+                    'size-3.5 transition-transform duration-300 ease-out',
+                    !open && 'rotate-180'
+                )}
+                strokeWidth={2.5}
+            />
             <span className="sr-only">Toggle Sidebar</span>
         </Button>
     );
@@ -337,7 +382,7 @@ function SidebarInset({ className, ...props }: React.ComponentProps<'main'>) {
             data-slot="sidebar-inset"
             className={cn(
                 'bg-background relative flex w-full flex-1 flex-col',
-                'md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2',
+                'lg:peer-data-[variant=inset]:m-2 lg:peer-data-[variant=inset]:ml-0 lg:peer-data-[variant=inset]:rounded-xl lg:peer-data-[variant=inset]:shadow-sm lg:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2',
                 className
             )}
             {...props}
@@ -559,9 +604,15 @@ function SidebarMenuButton({
         />
     );
 
-    if (!tooltip) {
+
+    // Only show tooltip when sidebar is collapsed and not mobile
+    // When expanded, return button directly so parent asChild (e.g. CollapsibleTrigger)
+    // can properly merge refs and click handlers
+    if (!tooltip || state !== 'collapsed' || isMobile) {
         return button;
-    } else {
+    }
+
+    if (typeof tooltip === 'string') {
         tooltip = {
             children: tooltip as React.ReactNode,
         };
@@ -573,7 +624,6 @@ function SidebarMenuButton({
             <TooltipContent
                 side="right"
                 align="center"
-                hidden={state !== 'collapsed' || isMobile}
                 sideOffset={5}
                 className="bg-[var(--brand-grey)] shadow-2xl [&>span>svg]:bg-[var(--brand-grey)] [&>span>svg]:fill-[var(--brand-grey)] text-brand-text"
                 {...tooltip}

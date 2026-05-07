@@ -428,11 +428,11 @@ export function SignUpForm({ onSignUpSuccess }: SignUpFormProps) {
                                 Bằng việc tạo tài khoản, tôi xác nhận mình{' '}
                                 <span className="font-bold">{t('auth.termsAgreement.startAgePrivacy')}</span> {t('auth.termsAgreement.startEndContent')}
                                 {' '}{t('auth.termsAgreement.startNewLine')}{' '}
-                                <Link className="dark:text-[var(--brand-color)] text-brand-text font-bold hover:underline" href="https://trading.chaomarket.com/terms-of-use" target="_blank" rel="noopener">
+                                <Link className="dark:text-[var(--brand-color)] text-brand-text font-bold hover:underline" href="https://policy.chaomarket.com/terms-of-use" target="_blank" rel="noopener">
                                     {t('auth.termsAgreement.termsOfUse')}
                                 </Link>{' '}
                                 {t('auth.termsAgreement.and')}{' '}
-                                <Link href="https://trading.chaomarket.com/privacy-policy" target="_blank" rel="noopener" className="dark:text-[var(--brand-color)] text-black font-bold hover:underline">
+                                <Link href="https://policy.chaomarket.com/privacy-policy" target="_blank" rel="noopener" className="dark:text-[var(--brand-color)] text-black font-bold hover:underline">
                                     {t('auth.termsAgreement.privacyNotice')}
                                 </Link>
                             </label>

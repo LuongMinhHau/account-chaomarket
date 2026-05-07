@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/next-auth.config';
 import { db } from '@/lib/db';
 import { sql } from 'drizzle-orm';
+import { logger, sendToLogtail } from '@/lib/logger';
 
 /**
  * Fetch user's subscriptions (entitlements) from the shared DB.
@@ -34,8 +35,10 @@ export async function GET() {
         `);
 
         return NextResponse.json({ data: result.rows || [] });
-    } catch {
+    } catch (error) {
         // Table may not exist in this DB instance
+        logger.warn({ err: error }, 'Subscriptions fetch — table may not exist');
+        sendToLogtail('warn', 'Subscriptions fetch fallback', { error: String(error) });
         return NextResponse.json({ data: [] });
     }
 }

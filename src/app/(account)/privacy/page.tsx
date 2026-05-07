@@ -10,7 +10,6 @@ import {
     CheckCircle2,
     AlertTriangle,
     Loader2,
-    Lock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,13 +18,14 @@ import {
     Dialog,
     DialogContent,
     DialogDescription,
-    DialogFooter,
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
 import LoadingSpinner from '@/components/loading-spinner';
 import PageHeader from '@/components/page-header';
 import { useRouter } from 'next/navigation';
+
+import { useI18n } from '@/context/i18n/context';
 
 interface PrivacyData {
     linkedProviders: string[];
@@ -47,6 +47,7 @@ const providerLabels: Record<string, { name: string; icon: string; color: string
 export default function PrivacyPage() {
     const { status } = useSession();
     const router = useRouter();
+    const { t, locale } = useI18n();
     const [data, setData] = useState<PrivacyData | null>(null);
     const [loading, setLoading] = useState(true);
     const [downloading, setDownloading] = useState(false);
@@ -54,7 +55,7 @@ export default function PrivacyPage() {
 
     useEffect(() => {
         if (status === 'unauthenticated') {
-            router.push('/auth/login?callbackUrl=/account/privacy');
+            router.push('/auth/login?callbackUrl=/privacy');
             return;
         }
         if (status === 'authenticated') {
@@ -75,7 +76,7 @@ export default function PrivacyPage() {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `chao-market-data-${new Date().toISOString().split('T')[0]}.json`;
+            a.download = `chao-account-data-${new Date().toISOString().split('T')[0]}.json`;
             a.click();
             URL.revokeObjectURL(url);
         } catch {
@@ -99,8 +100,8 @@ export default function PrivacyPage() {
     return (
         <div className="w-full h-full mx-auto space-y-6">
             <PageHeader
-                title="Quyền Riêng Tư"
-                description="Quản lý phương thức đăng nhập và dữ liệu cá nhân"
+                title={t('privacyPage.title')}
+                description={t('privacyPage.description')}
             />
 
             {/* Connected Sign-in Methods */}
@@ -108,10 +109,10 @@ export default function PrivacyPage() {
                 <CardContent className="p-6">
                     <div className="flex items-center gap-2 mb-4">
                         <Link2 className="w-5 h-5 text-[var(--brand-color)]" />
-                        <h3 className="text-lg font-semibold">Phương Thức Đăng Nhập</h3>
+                        <h3 className="text-lg font-semibold">{t('privacyPage.signInMethods.title')}</h3>
                     </div>
                     <p className="text-sm text-muted-foreground mb-4">
-                        Các phương thức đăng nhập đã liên kết với tài khoản của bạn.
+                        {t('privacyPage.signInMethods.description')}
                     </p>
 
                     <div className="space-y-3">
@@ -125,7 +126,7 @@ export default function PrivacyPage() {
                             <div className="flex items-center gap-3">
                                 <Shield className="size-8 text-emerald-600 dark:text-emerald-400" />
                                 <div>
-                                    <p className="font-semibold text-[15px]">Email & Mật khẩu</p>
+                                    <p className="font-semibold text-[15px]">{t('privacyPage.signInMethods.emailPassword')}</p>
                                     <p className="text-[13px] text-muted-foreground">
                                         {data?.dataSummary?.email}
                                     </p>
@@ -136,8 +137,8 @@ export default function PrivacyPage() {
                                 hasCredentials ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground',
                             )}>
                                 {hasCredentials
-                                    ? <><CheckCircle2 className="size-3.5" /> Đã thiết lập</>
-                                    : 'Chưa thiết lập'
+                                    ? <><CheckCircle2 className="size-3.5" /> {t('privacyPage.signInMethods.setup')}</>
+                                    : t('privacyPage.signInMethods.notSetup')
                                 }
                             </span>
                         </div>
@@ -155,6 +156,7 @@ export default function PrivacyPage() {
                                 >
                                     <div className="flex items-center gap-3">
                                         {cfg.icon ? (
+                                            // eslint-disable-next-line @next/next/no-img-element
                                             <img src={cfg.icon} alt={cfg.name} className="size-8" />
                                         ) : (
                                             <div className="size-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold">
@@ -163,11 +165,11 @@ export default function PrivacyPage() {
                                         )}
                                         <div>
                                             <p className="font-semibold text-[15px]">{cfg.name}</p>
-                                            <p className="text-[13px] text-muted-foreground">Đăng nhập bằng {cfg.name}</p>
+                                            <p className="text-[13px] text-muted-foreground">{t('privacyPage.signInMethods.loginWith')} {cfg.name}</p>
                                         </div>
                                     </div>
                                     <span className="inline-flex items-center gap-1 text-[13px] font-medium text-blue-600 dark:text-blue-400">
-                                        <CheckCircle2 className="size-3.5" /> Đã liên kết
+                                        <CheckCircle2 className="size-3.5" /> {t('privacyPage.signInMethods.linked')}
                                     </span>
                                 </div>
                             );
@@ -175,7 +177,7 @@ export default function PrivacyPage() {
 
                         {providers.length === 0 && !hasCredentials && (
                             <p className="text-sm text-muted-foreground text-center py-4">
-                                Không tìm thấy phương thức đăng nhập
+                                {t('privacyPage.signInMethods.noMethods')}
                             </p>
                         )}
                     </div>
@@ -187,42 +189,42 @@ export default function PrivacyPage() {
                 <CardContent className="p-6">
                     <div className="flex items-center gap-2 mb-4">
                         <Download className="w-5 h-5 text-[var(--brand-color)]" />
-                        <h3 className="text-lg font-semibold">Dữ Liệu Của Bạn</h3>
+                        <h3 className="text-lg font-semibold">{t('privacyPage.yourData.title')}</h3>
                     </div>
                     <p className="text-sm text-muted-foreground mb-4">
-                        Tổng quan dữ liệu cá nhân được lưu trữ trong hệ thống Chào Market.
+                        {t('privacyPage.yourData.description')}
                     </p>
 
                     <div className="divide-y divide-border/50 mb-5">
                         <div className="flex justify-between py-2.5">
-                            <span className="text-[14px] text-muted-foreground">Họ tên</span>
+                            <span className="text-[14px] text-muted-foreground">{t('privacyPage.yourData.fullName')}</span>
                             <span className="text-[14px] font-medium">{data?.dataSummary?.name || '—'}</span>
                         </div>
                         <div className="flex justify-between py-2.5">
-                            <span className="text-[14px] text-muted-foreground">Email</span>
+                            <span className="text-[14px] text-muted-foreground">{t('privacyPage.yourData.email')}</span>
                             <span className="text-[14px] font-medium">{data?.dataSummary?.email || '—'}</span>
                         </div>
                         <div className="flex justify-between py-2.5">
-                            <span className="text-[14px] text-muted-foreground">Số điện thoại</span>
+                            <span className="text-[14px] text-muted-foreground">{t('privacyPage.yourData.phone')}</span>
                             <span className="text-[14px] font-medium">{data?.dataSummary?.phone || '—'}</span>
                         </div>
                         <div className="flex justify-between py-2.5">
-                            <span className="text-[14px] text-muted-foreground">Thành viên từ</span>
+                            <span className="text-[14px] text-muted-foreground">{t('privacyPage.yourData.memberSince')}</span>
                             <span className="text-[14px] font-medium">
                                 {data?.dataSummary?.memberSince
-                                    ? new Date(data.dataSummary.memberSince).toLocaleDateString('vi-VN')
+                                    ? new Date(data.dataSummary.memberSince).toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-US')
                                     : '—'}
                             </span>
                         </div>
                         <div className="flex justify-between py-2.5">
-                            <span className="text-[14px] text-muted-foreground">Email xác minh</span>
+                            <span className="text-[14px] text-muted-foreground">{t('privacyPage.yourData.emailVerified')}</span>
                             <span className={cn(
                                 'inline-flex items-center gap-1 text-[14px] font-medium',
                                 data?.dataSummary?.emailVerified ? 'text-green-600 dark:text-green-400' : 'text-amber-600',
                             )}>
                                 {data?.dataSummary?.emailVerified
-                                    ? <><CheckCircle2 className="size-3.5" /> Đã xác minh</>
-                                    : <><AlertTriangle className="size-3.5" /> Chưa xác minh</>
+                                    ? <><CheckCircle2 className="size-3.5" /> {t('privacyPage.yourData.verified')}</>
+                                    : <><AlertTriangle className="size-3.5" /> {t('privacyPage.yourData.notVerified')}</>
                                 }
                             </span>
                         </div>
@@ -234,8 +236,8 @@ export default function PrivacyPage() {
                         className="w-full bg-[var(--brand-color)] text-black font-semibold rounded-lg hover:bg-[var(--brand-color)]/90 transition-all duration-300"
                     >
                         {downloading
-                            ? <><Loader2 className="size-4 animate-spin mr-2" /> Đang tải...</>
-                            : <><Download className="size-4 mr-2" /> Tải Xuống Dữ Liệu Cá Nhân</>
+                            ? <><Loader2 className="size-4 animate-spin mr-2" /> {t('privacyPage.exportData.downloading')}</>
+                            : <><Download className="size-4 mr-2" /> {t('privacyPage.exportData.button')}</>
                         }
                     </Button>
                 </CardContent>
@@ -246,11 +248,10 @@ export default function PrivacyPage() {
                 <CardContent className="p-6">
                     <div className="flex items-center gap-2 mb-4">
                         <Trash2 className="w-5 h-5 text-red-500" />
-                        <h3 className="text-lg font-semibold text-red-600 dark:text-red-400">Vùng Nguy Hiểm</h3>
+                        <h3 className="text-lg font-semibold text-red-600 dark:text-red-400">{t('privacyPage.deleteAccount.title')}</h3>
                     </div>
                     <p className="text-sm text-muted-foreground mb-4">
-                        Xóa tài khoản sẽ xóa vĩnh viễn tất cả dữ liệu của bạn khỏi hệ thống Chào Market.
-                        Hành động này không thể hoàn tác.
+                        {t('privacyPage.deleteAccount.description')}
                     </p>
                     <Button
                         variant="outline"
@@ -258,7 +259,7 @@ export default function PrivacyPage() {
                         className="border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/10 hover:border-red-500/50 transition-all"
                     >
                         <Trash2 className="size-4 mr-2" />
-                        Yêu Cầu Xóa Tài Khoản
+                        {t('privacyPage.deleteAccount.button')}
                     </Button>
                 </CardContent>
             </Card>
@@ -269,32 +270,30 @@ export default function PrivacyPage() {
                     <DialogHeader>
                         <DialogTitle className="text-red-600 dark:text-red-400 flex items-center gap-2">
                             <AlertTriangle className="size-5" />
-                            Xác Nhận Xóa Tài Khoản
+                            {t('privacyPage.deleteAccount.dialogTitle')}
                         </DialogTitle>
                         <DialogDescription className="text-[15px] mt-2">
-                            Bạn có chắc chắn muốn xóa tài khoản? Tất cả dữ liệu sẽ bị xóa vĩnh viễn sau 30 ngày.
-                            Trong thời gian này, bạn có thể liên hệ <a href="mailto:support@chaomarket.com" className="text-[var(--brand-color)] font-semibold hover:underline">support@chaomarket.com</a> để hủy yêu cầu.
+                            {t('privacyPage.deleteAccount.dialogDescription')} <a href="mailto:support@chaomarket.com" className="text-[var(--brand-color)] font-semibold hover:underline">support@chaomarket.com</a> {t('privacyPage.deleteAccount.dialogContact')}
                         </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter className="flex gap-3 mt-2">
+                    <div className="flex gap-3 justify-end pt-1">
                         <Button
                             variant="ghost"
                             onClick={() => setShowDeleteDialog(false)}
                             className="bg-transparent text-neutral-500 border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-200 dark:hover:bg-neutral-800"
                         >
-                            Hủy
+                            {t('privacyPage.deleteAccount.dialogCancel')}
                         </Button>
                         <Button
                             onClick={() => {
                                 setShowDeleteDialog(false);
                                 // TODO: Implement account deletion request API
-                                alert('Yêu cầu xóa tài khoản đã được gửi. Vui lòng kiểm tra email.');
                             }}
                             className="bg-red-600 text-white hover:bg-red-700 border-0"
                         >
-                            Xác Nhận Xóa
+                            {t('privacyPage.deleteAccount.dialogConfirm')}
                         </Button>
-                    </DialogFooter>
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>

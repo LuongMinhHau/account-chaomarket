@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/next-auth.config';
 import { db } from '@/lib/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
 
 export async function GET() {
     const session = await getServerSession(authOptions);
@@ -28,6 +29,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+    const rateLimitResponse = checkAuthRateLimit(request, 'login');
+    if (rateLimitResponse) return rateLimitResponse;
+
     const { email } = await request.json();
 
     if (!email) {
@@ -37,6 +41,7 @@ export async function POST(request: NextRequest) {
     const [user] = await db
         .select({
             emailVerified: users.emailVerified,
+            loginVerification: users.loginVerification,
         })
         .from(users)
         .where(eq(users.email, email))
@@ -50,6 +55,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
         data: {
             emailVerified: user.emailVerified,
+            loginVerification: user.loginVerification,
         },
     });
 }

@@ -9,6 +9,7 @@ import {
     useSidebar,
 } from '@/components/ui/sidebar';
 import ThemeToggle from './theme-toggle';
+import { usePathname } from 'next/navigation';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useI18n } from '@/context/i18n/context';
 import Image from 'next/image';
@@ -171,6 +172,7 @@ const NavInformation = ({
     themeDarkVisible?: boolean;
 }) => {
     const { t } = useI18n();
+    const path = usePathname();
 
     return (
         <SidebarGroup className="px-2 mb-2">
@@ -178,10 +180,10 @@ const NavInformation = ({
                 {contactVisible && (
                     <SidebarMenuItem className={'font-medium'}>
                         <SidebarMenuButton
-                            isActive={false}
+                            isActive={path.startsWith('/contact')}
                             tooltip={<p className={'font-semibold'}>Contact</p>}
-                            onClick={() => window.open('https://chaomarket.com/contact', '_blank')}
-                            className="text-xs md:text-sm"
+                            onClick={() => (window.location.href = '/contact')}
+                            className="data-[active=true]:border-l-6 dark:data-[active=true]:border-[var(--brand-color)] data-[active=true]:border-black rounded-none text-xs md:text-sm"
                         >
                             <PhoneCall className="mr-2 w-4 h-4" />
                             <span>{t('common.contacts')}</span>

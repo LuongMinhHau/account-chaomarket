@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/next-auth.config';
 import { db } from '@/lib/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { logger, sendToLogtail } from '@/lib/logger';
 
 export async function GET() {
     const session = await getServerSession(authOptions);
@@ -58,7 +59,8 @@ export async function PUT(request: NextRequest) {
 
         return NextResponse.json({ message: 'Profile updated successfully' });
     } catch (error) {
-        console.error('Profile update error:', error);
+        logger.error({ err: error, userId: session.user.id }, 'Profile update error');
+        sendToLogtail('error', 'Profile update failed', { userId: session.user.id, error: String(error) });
         return NextResponse.json({ message: 'Failed to update profile' }, { status: 500 });
     }
 }

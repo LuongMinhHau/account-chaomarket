@@ -5,6 +5,7 @@ import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
 import { logAuditEvent } from '@/lib/audit-logger';
+import { logger, sendToLogtail } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
     const rateLimitResponse = checkAuthRateLimit(request, 'register');
@@ -77,7 +78,8 @@ export async function POST(request: NextRequest) {
             { status: 201 }
         );
     } catch (error) {
-        console.error('Registration error:', error);
+        logger.error({ err: error }, 'Registration error');
+        sendToLogtail('error', 'Registration failed', { error: String(error) });
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

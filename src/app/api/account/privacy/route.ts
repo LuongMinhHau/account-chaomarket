@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/next-auth.config';
 import { db } from '@/lib/db';
 import { accounts, users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { logger, sendToLogtail } from '@/lib/logger';
 
 export async function GET() {
     const session = await getServerSession(authOptions);
@@ -47,7 +48,7 @@ export async function GET() {
             },
         });
     } catch (error) {
-        console.error('Privacy data error:', error);
+        logger.error({ err: error }, 'Privacy data error'); sendToLogtail('error', 'Privacy data fetch failed', { error: String(error) });
         return NextResponse.json({ message: 'Error' }, { status: 500 });
     }
 }

@@ -11,6 +11,7 @@ import type { RequestMeta } from '@/lib/email-templates';
 import { getEmailLocale } from '@/lib/get-email-locale';
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
 import { logAuditEvent } from '@/lib/audit-logger';
+import { logger, sendToLogtail } from '@/lib/logger';
 
 function hashOTP(otp: string): string {
     return createHash('sha256').update(otp).digest('hex');
@@ -117,7 +118,7 @@ export async function POST(request: NextRequest) {
                 htmlContent: passwordChangedEmail(locale, user.name ?? undefined, meta),
             });
         } catch (e) {
-            console.error('Failed to send password changed notification:', e);
+            logger.warn({ err: e }, 'Failed to send password changed notification'); sendToLogtail('warn', 'Password changed notification failed', { error: String(e) });
         }
 
         return NextResponse.json<BaseResponse>(
@@ -125,7 +126,7 @@ export async function POST(request: NextRequest) {
             { status: 200 }
         );
     } catch (error) {
-        console.error('Password change error:', error);
+        logger.error({ err: error }, 'Password change error'); sendToLogtail('error', 'Password change failed', { error: String(error) });
         return NextResponse.json<BaseResponse>(
             { message: 'Failed to update password' },
             { status: 500 }

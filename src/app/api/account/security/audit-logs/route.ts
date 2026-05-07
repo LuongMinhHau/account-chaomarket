@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/next-auth.config';
 import { db } from '@/lib/db';
 import { auditLogs } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { logger, sendToLogtail } from '@/lib/logger';
 
 export async function GET() {
     const session = await getServerSession(authOptions);
@@ -25,7 +26,7 @@ export async function GET() {
 
         return NextResponse.json({ logs });
     } catch (error) {
-        console.error('Audit logs error:', error);
+        logger.error({ err: error }, 'Audit logs error'); sendToLogtail('error', 'Audit logs fetch failed', { error: String(error) });
         return NextResponse.json({ logs: [] });
     }
 }

@@ -15,6 +15,8 @@ import { PerformanceNoticeTranslations } from '@/types/translations/performance-
 import { HelpAndFeedback } from '@/types/translations/help-and-feedback';
 import { BrandSloganTranslations } from './brand-slogan-translations';
 import { NotificationsTranslations } from '@/types/translations/notifications';
+import { OrdersTranslations } from '@/types/translations/orders';
+import { SecurityTranslations, DevicesTranslations, TwoFactorTranslations, LoginVerificationTranslations, PrivacyPageTranslations } from '@/types/translations/security';
 
 export type LanguageOptions = 'en' | 'vi';
 
@@ -39,6 +41,12 @@ export interface TranslationsStructure {
     brandSlogan: BrandSloganTranslations;
     lossRecovery: LossRecoveryTranslations;
     notifications: NotificationsTranslations;
+    orders: OrdersTranslations;
+    security: SecurityTranslations;
+    devices: DevicesTranslations;
+    twoFactor: TwoFactorTranslations;
+    loginVerification: LoginVerificationTranslations;
+    privacyPage: PrivacyPageTranslations;
 }
 
 type Leaves<T, K extends string = ''> = T extends object

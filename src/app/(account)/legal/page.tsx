@@ -3,27 +3,37 @@
 import { Scale, ExternalLink, FileText, Shield, Cookie } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import PageHeader from '@/components/page-header';
+import { useI18n } from '@/context/i18n/context';
 
 export default function LegalPage() {
+    const { t } = useI18n();
+
     const legalLinks = [
         {
-            title: 'Điều Khoản Sử Dụng',
-            description: 'Các quy tắc và điều kiện khi sử dụng dịch vụ Chào Market',
-            href: 'https://trading.chaomarket.com/terms-of-use',
+            title: t('account.legalPage.termsTitle'),
+            description: t('account.legalPage.termsDesc'),
+            href: 'https://policy.chaomarket.com/terms-of-use',
             icon: <FileText className="size-5" />,
             color: 'from-blue-500 to-blue-600',
         },
         {
-            title: 'Chính Sách Bảo Mật',
-            description: 'Cách chúng tôi thu thập, sử dụng và bảo vệ dữ liệu cá nhân của bạn',
-            href: 'https://trading.chaomarket.com/privacy-policy',
+            title: t('account.legalPage.privacyTitle'),
+            description: t('account.legalPage.privacyDesc'),
+            href: 'https://policy.chaomarket.com/privacy-policy',
             icon: <Shield className="size-5" />,
             color: 'from-emerald-500 to-emerald-600',
         },
         {
-            title: 'Chính Sách Cookie',
-            description: 'Thông tin về cách chúng tôi sử dụng cookie trên trang web',
-            href: 'https://trading.chaomarket.com/cookie-policy',
+            title: t('account.legalPage.refundTitle'),
+            description: t('account.legalPage.refundDesc'),
+            href: 'https://policy.chaomarket.com/support-policy',
+            icon: <Scale className="size-5" />,
+            color: 'from-violet-500 to-violet-600',
+        },
+        {
+            title: t('account.legalPage.cookieTitle'),
+            description: t('account.legalPage.cookieDesc'),
+            href: 'https://policy.chaomarket.com/cookie-policy',
             icon: <Cookie className="size-5" />,
             color: 'from-amber-500 to-orange-500',
         },
@@ -32,15 +42,15 @@ export default function LegalPage() {
     return (
         <div className="w-full h-full mx-auto space-y-6">
             <PageHeader
-                title="Pháp Lý"
-                description="Điều khoản và chính sách của Chào Market"
+                title={t('account.legalPage.pageTitle')}
+                description={t('account.legalPage.pageDescription')}
             />
 
             <Card className="page-card">
                 <CardContent className="p-6 space-y-3">
-                    {legalLinks.map((link, i) => (
+                    {legalLinks.map((link) => (
                         <a
-                            key={link.title}
+                            key={link.href}
                             href={link.href}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -66,8 +76,8 @@ export default function LegalPage() {
 
                     <div className="rounded-xl bg-muted/30 dark:bg-white/[0.02] p-4 mt-4 border border-black/[0.04] dark:border-white/[0.04]">
                         <p className="text-xs text-muted-foreground text-center leading-relaxed">
-                            Bằng việc sử dụng dịch vụ Chào Market, bạn đồng ý với các điều khoản và chính sách trên.
-                            Nếu có thắc mắc, vui lòng liên hệ <a href="mailto:support@chaomarket.com" className="text-[var(--brand-color)] hover:underline font-medium">support@chaomarket.com</a>
+                            {t('account.legalPage.disclaimer')}{' '}
+                            <a href="mailto:support@chaomarket.com" className="text-[var(--brand-color)] hover:underline font-medium">support@chaomarket.com</a>
                         </p>
                     </div>
                 </CardContent>
