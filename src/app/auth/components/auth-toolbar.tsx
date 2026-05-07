@@ -2,9 +2,7 @@
 
 import { useI18n } from '@/context/i18n/context';
 import { useTheme } from 'next-themes';
-import Image from 'next/image';
 import { Sun, Moon } from 'lucide-react';
-import { ENLocale, VILocale } from '../../../../public/languages';
 import { useState, useEffect } from 'react';
 
 /**
@@ -40,13 +38,9 @@ export default function AuthToolbar() {
                     shadow-lg shadow-black/5 dark:shadow-black/20"
                 title={locale === 'vi' ? 'Switch to English' : 'Chuyển sang Tiếng Việt'}
             >
-                <Image
-                    src={locale === 'vi' ? VILocale : ENLocale}
-                    alt={`locale-flag-${locale}`}
-                    width={20}
-                    height={14}
-                    className="size-4 object-contain rounded-sm"
-                />
+                <span className="text-sm leading-none">
+                    {locale === 'vi' ? '🇻🇳' : '🇬🇧'}
+                </span>
                 <span className="text-xs font-medium">
                     {locale === 'vi' ? 'Tiếng Việt' : 'English'}
                 </span>

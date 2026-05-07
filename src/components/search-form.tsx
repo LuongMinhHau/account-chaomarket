@@ -15,7 +15,7 @@ import { useI18n } from '@/context/i18n/context';
 import { useRouter } from 'next/navigation';
 import { searchContent, SearchableItem } from '@/constant/searchable-content';
 import Image from 'next/image';
-import { LogoBrand } from '@image/index';
+import LogoBrand from '@/../public/img/brand-logo.svg';
 import LogoChaoNews from '@/../public/img/chaonews-logo.svg';
 
 const CATEGORY_LABELS: Record<string, Record<string, string>> = {

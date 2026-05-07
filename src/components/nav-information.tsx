@@ -12,8 +12,6 @@ import ThemeToggle from './theme-toggle';
 import { usePathname } from 'next/navigation';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useI18n } from '@/context/i18n/context';
-import Image from 'next/image';
-import { ENLocale, VILocale } from '../../public/languages';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -85,13 +83,7 @@ const LanguageSwitcher = ({
                             ' duration-200 ease-in-out cursor-pointer'
                         }
                     >
-                        <Image
-                            src={VILocale}
-                            alt={`locale-flag-vi`}
-                            width={1920}
-                            height={1080}
-                            className={'size-4 object-contain'}
-                        />{' '}
+                        <span className="text-sm leading-none">🇻🇳</span>{' '}
                         Tiếng Việt
                     </DropdownMenuItem>
                     <DropdownMenuItem
@@ -102,13 +94,7 @@ const LanguageSwitcher = ({
                             ' duration-200 ease-in-out cursor-pointer'
                         }
                     >
-                        <Image
-                            src={ENLocale}
-                            alt={`locale-flag-en`}
-                            width={1920}
-                            height={1080}
-                            className={'size-4 object-contain'}
-                        />{' '}
+                        <span className="text-sm leading-none">🇬🇧</span>{' '}
                         English
                     </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -127,26 +113,14 @@ const LanguageSwitcher = ({
                     value="vi"
                     className="text-[13px] data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-[rgba(0,0,0,0.9)] dark:data-[state=inactive]:hover:text-[rgba(255,255,255,0.9)] bg-transparent! data-[state=active]:text-[rgba(0,0,0,0.9)]! dark:data-[state=active]:text-[rgba(255,255,255,0.9)]! data-[state=active]:border-[rgba(0,0,0,0.15)]! dark:data-[state=active]:border-[rgba(255,255,255,0.2)]! data-[state=active]:bg-transparent! data-[state=active]:shadow-none! cursor-pointer transition-all! duration-300 ease-in-out"
                 >
-                    <Image
-                        src={VILocale}
-                        alt={`locale-flag-vi`}
-                        width={1920}
-                        height={1080}
-                        className={'size-4 object-contain'}
-                    />
+                    <span className="text-sm leading-none">🇻🇳</span>
                     Tiếng Việt
                 </TabsTrigger>
                 <TabsTrigger
                     value="en"
                     className="text-[13px] data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-[rgba(0,0,0,0.9)] dark:data-[state=inactive]:hover:text-[rgba(255,255,255,0.9)] bg-transparent! data-[state=active]:text-[rgba(0,0,0,0.9)]! dark:data-[state=active]:text-[rgba(255,255,255,0.9)]! data-[state=active]:border-[rgba(0,0,0,0.15)]! dark:data-[state=active]:border-[rgba(255,255,255,0.2)]! data-[state=active]:bg-transparent! data-[state=active]:shadow-none! cursor-pointer transition-all! duration-300 ease-in-out"
                 >
-                    <Image
-                        src={ENLocale}
-                        alt={`locale-flag-en`}
-                        width={1920}
-                        height={1080}
-                        className={'size-4 object-contain'}
-                    />
+                    <span className="text-sm leading-none">🇬🇧</span>
                     English
                 </TabsTrigger>
             </TabsList>
