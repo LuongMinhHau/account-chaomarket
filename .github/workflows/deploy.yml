@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: minhhauluong/chao-market-accounts
+  IMAGE_NAME: minhhauluong/account-chaomarket
 
 jobs:
   build-and-push:
@@ -29,6 +29,7 @@ jobs:
         with:
           context: .
           push: true
+          platforms: linux/amd64
           tags: |
             ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
@@ -45,8 +46,17 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_SSH_PORT }}
           script: |
-            cd /opt/chaomarket
             docker pull ${{ env.IMAGE_NAME }}:latest
-            docker compose -f docker-compose.prod.yml up -d next-app-accounts
-            echo "✅ Chào Market Accounts deployed successfully"
+            docker stop account-chaomarket 2>/dev/null || true
+            docker rm account-chaomarket 2>/dev/null || true
+            docker run -d \
+              --name account-chaomarket \
+              --network chaomarket \
+              --env-file /root/account-chaomarket/.env \
+              -p 3002:3002 \
+              --restart unless-stopped \
+              ${{ env.IMAGE_NAME }}:latest
+            sleep 3
+            curl -sf http://localhost:3002/health && echo "✅ Deployed successfully" || echo "❌ Health check failed"
