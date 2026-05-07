@@ -114,7 +114,7 @@ export function ColorHighlightPopoverContent({
 
     const removeHighlight = React.useCallback(() => {
         if (!editor) return;
-        editor.chain().focus().unsetMark('highlight').run();
+        (editor.chain().focus() as any).unsetMark('highlight').run();
         onClose?.();
     }, [editor, onClose]);
 

@@ -92,7 +92,8 @@ export function canSetTextAlign(
     if (!editor || !alignAvailable) return false;
 
     try {
-        return editor.can().setTextAlign(align);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (editor.can() as any).setTextAlign?.(align) ?? false;
     } catch {
         return false;
     }

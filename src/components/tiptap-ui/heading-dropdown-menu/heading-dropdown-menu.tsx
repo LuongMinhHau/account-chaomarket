@@ -75,7 +75,7 @@ export function HeadingDropdownMenu({
     const canToggleAnyHeading = React.useCallback((): boolean => {
         if (!editor) return false;
         return levels.some(level =>
-            editor.can().toggleNode('heading', 'paragraph', { level })
+            (editor.can() as any).toggleNode('heading', 'paragraph', { level })
         );
     }, [editor, levels]);
 

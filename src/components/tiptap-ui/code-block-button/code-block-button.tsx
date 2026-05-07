@@ -36,7 +36,7 @@ export function canToggleCodeBlock(editor: Editor | null): boolean {
     if (!editor) return false;
 
     try {
-        return editor.can().toggleNode('codeBlock', 'paragraph');
+        return (editor.can() as any).toggleNode('codeBlock', 'paragraph');
     } catch {
         return false;
     }
@@ -49,7 +49,7 @@ export function isCodeBlockActive(editor: Editor | null): boolean {
 
 export function toggleCodeBlock(editor: Editor | null): boolean {
     if (!editor) return false;
-    return editor.chain().focus().toggleNode('codeBlock', 'paragraph').run();
+    return (editor.chain().focus() as any).toggleNode('codeBlock', 'paragraph').run();
 }
 
 export function isCodeBlockButtonDisabled(

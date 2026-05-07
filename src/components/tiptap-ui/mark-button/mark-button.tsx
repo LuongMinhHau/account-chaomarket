@@ -74,7 +74,7 @@ export function canToggleMark(editor: Editor | null, type: Mark): boolean {
     if (!editor) return false;
 
     try {
-        return editor.can().toggleMark(type);
+        return (editor.can() as any).toggleMark(type);
     } catch {
         return false;
     }
@@ -87,7 +87,7 @@ export function isMarkActive(editor: Editor | null, type: Mark): boolean {
 
 export function toggleMark(editor: Editor | null, type: Mark): void {
     if (!editor) return;
-    editor.chain().focus().toggleMark(type).run();
+    (editor.chain().focus() as any).toggleMark(type).run();
 }
 
 export function isMarkButtonDisabled(

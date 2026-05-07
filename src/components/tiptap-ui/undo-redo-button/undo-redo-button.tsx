@@ -61,7 +61,7 @@ export function canExecuteHistoryAction(
     action: HistoryAction
 ): boolean {
     if (!editor) return false;
-    return action === 'undo' ? editor.can().undo() : editor.can().redo();
+    return action === 'undo' ? (editor.can() as any).undo() : (editor.can() as any).redo();
 }
 
 /**
@@ -77,7 +77,7 @@ export function executeHistoryAction(
 ): boolean {
     if (!editor) return false;
     const chain = editor.chain().focus();
-    return action === 'undo' ? chain.undo().run() : chain.redo().run();
+    return action === 'undo' ? (chain as any).undo().run() : (chain as any).redo().run();
 }
 
 /**

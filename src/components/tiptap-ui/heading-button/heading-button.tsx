@@ -65,7 +65,7 @@ export function canToggleHeading(editor: Editor | null, level: Level): boolean {
     if (!editor) return false;
 
     try {
-        return editor.can().toggleNode('heading', 'paragraph', { level });
+        return (editor.can() as any).toggleNode('heading', 'paragraph', { level });
     } catch {
         return false;
     }
@@ -80,7 +80,7 @@ export function toggleHeading(editor: Editor | null, level: Level): void {
     if (!editor) return;
 
     if (editor.isActive('heading', { level })) {
-        editor.chain().focus().setNode('paragraph').run();
+        (editor.chain().focus() as any).setNode('paragraph').run();
     } else {
         editor
             .chain()

@@ -36,7 +36,7 @@ export function canToggleBlockquote(editor: Editor | null): boolean {
     if (!editor) return false;
 
     try {
-        return editor.can().toggleWrap('blockquote');
+        return (editor.can() as any).toggleWrap('blockquote');
     } catch {
         return false;
     }
@@ -49,7 +49,7 @@ export function isBlockquoteActive(editor: Editor | null): boolean {
 
 export function toggleBlockquote(editor: Editor | null): boolean {
     if (!editor) return false;
-    return editor.chain().focus().toggleWrap('blockquote').run();
+    return (editor.chain().focus() as any).toggleWrap('blockquote').run();
 }
 
 export function isBlockquoteButtonDisabled(

@@ -75,13 +75,16 @@ export function canToggleList(editor: Editor | null, type: ListType): boolean {
         return false;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const can = editor.can() as any;
+
     switch (type) {
         case 'bulletList':
-            return editor.can().toggleBulletList();
+            return can.toggleBulletList?.() ?? false;
         case 'orderedList':
-            return editor.can().toggleOrderedList();
+            return can.toggleOrderedList?.() ?? false;
         case 'taskList':
-            return editor.can().toggleList('taskList', 'taskItem');
+            return can.toggleList?.('taskList', 'taskItem') ?? false;
         default:
             return false;
     }
@@ -105,15 +108,18 @@ export function isListActive(editor: Editor | null, type: ListType): boolean {
 export function toggleList(editor: Editor | null, type: ListType): void {
     if (!editor) return;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const chain = editor.chain().focus() as any;
+
     switch (type) {
         case 'bulletList':
-            editor.chain().focus().toggleBulletList().run();
+            chain.toggleBulletList().run();
             break;
         case 'orderedList':
-            editor.chain().focus().toggleOrderedList().run();
+            chain.toggleOrderedList().run();
             break;
         case 'taskList':
-            editor.chain().focus().toggleList('taskList', 'taskItem').run();
+            chain.toggleList('taskList', 'taskItem').run();
             break;
     }
 }

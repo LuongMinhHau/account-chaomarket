@@ -113,7 +113,7 @@ export interface ColorHighlightButtonProps extends Omit<ButtonProps, 'type'> {
 export function canToggleHighlight(editor: Editor | null): boolean {
     if (!editor) return false;
     try {
-        return editor.can().setMark('highlight');
+        return (editor.can() as any).setMark('highlight');
     } catch {
         return false;
     }

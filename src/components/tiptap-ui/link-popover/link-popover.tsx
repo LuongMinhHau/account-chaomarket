@@ -269,13 +269,14 @@ export function LinkPopover({
     const isDisabled = React.useMemo(() => {
         if (!editor) return true;
         if (editor.isActive('codeBlock')) return true;
-        return !editor.can().setLink?.({ href: '' });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return !(editor.can() as any).setLink?.({ href: '' });
     }, [editor]);
 
     const canSetLink = React.useMemo(() => {
         if (!editor) return false;
         try {
-            return editor.can().setMark('link');
+            return (editor.can() as any).setMark('link');
         } catch {
             return false;
         }
