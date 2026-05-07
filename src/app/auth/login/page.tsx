@@ -213,7 +213,7 @@ function LoginPage() {
                     if (!signInResult?.ok) {
                         setError(t('auth.invalidCredentials'));
                     } else {
-                        const callbackUrl = searchParams.get('callbackUrl') || '/profile';
+                        const callbackUrl = searchParams.get('callbackUrl') || '/notifications';
                         if (callbackUrl.startsWith('http')) {
                             window.location.replace(callbackUrl);
                             return;
@@ -259,7 +259,7 @@ function LoginPage() {
                 setError(t('auth.invalidCredentials'));
                 setEmailVerified(true);
             } else {
-                const cb = searchParams.get('callbackUrl') || '/profile';
+                const cb = searchParams.get('callbackUrl') || '/notifications';
                 if (cb.startsWith('http')) {
                     window.location.replace(cb);
                     return;

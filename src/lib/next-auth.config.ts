@@ -103,7 +103,7 @@ export const authOptions: NextAuthOptions = {
         : undefined,
     pages: {
         signIn: '/auth/login',
-        newUser: '/auth/login',
+        newUser: '/profile',
     },
     secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
