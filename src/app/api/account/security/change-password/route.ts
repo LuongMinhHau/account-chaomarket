@@ -6,7 +6,7 @@ import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { logAuditEvent } from '@/lib/audit-logger';
-import { logger, sendToLogtail } from '@/lib/logger';
+import { logger, sendToLogtail, logApiEvent } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
             .set({ password: hashedPassword })
             .where(eq(users.id, session.user.id));
 
-        logAuditEvent({
+        logApiEvent('info', 'Password changed', { userId: session.user.id }); logAuditEvent({
             action: 'password_change',
             userId: session.user.id,
             email: session.user.email,

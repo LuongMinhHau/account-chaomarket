@@ -81,3 +81,24 @@ export function sendToLogtail(level: string, message: string, meta?: Record<stri
 export function createChildLogger(bindings: Record<string, unknown>) {
     return logger.child(bindings);
 }
+
+/**
+ * Log an API event — always forwards to Better Stack.
+ * Use for key business events (login, register, profile update, etc.)
+ */
+export function logApiEvent(
+    level: 'info' | 'warn' | 'error',
+    message: string,
+    meta?: Record<string, unknown>,
+) {
+    logger[level](meta || {}, message);
+    sendToLogtail(level, message, meta);
+}
+
+// ── Startup heartbeat ──
+if (typeof process !== 'undefined') {
+    sendToLogtail('info', 'Service started', {
+        nodeEnv: process.env.NODE_ENV,
+        port: process.env.PORT || '2000',
+    });
+}

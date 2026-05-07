@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/next-auth.config';
 import { db } from '@/lib/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { logger, sendToLogtail } from '@/lib/logger';
+import { logger, sendToLogtail, logApiEvent } from '@/lib/logger';
 
 export async function GET() {
     const session = await getServerSession(authOptions);
@@ -57,6 +57,7 @@ export async function PUT(request: NextRequest) {
             .set(updateData)
             .where(eq(users.id, session.user.id));
 
+        logApiEvent('info', 'Profile updated', { userId: session.user.id, fields: Object.keys(updateData) });
         return NextResponse.json({ message: 'Profile updated successfully' });
     } catch (error) {
         logger.error({ err: error, userId: session.user.id }, 'Profile update error');

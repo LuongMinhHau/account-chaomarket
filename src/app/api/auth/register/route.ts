@@ -5,7 +5,7 @@ import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
 import { logAuditEvent } from '@/lib/audit-logger';
-import { logger, sendToLogtail } from '@/lib/logger';
+import { logger, sendToLogtail, logApiEvent } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
     const rateLimitResponse = checkAuthRateLimit(request, 'register');
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
                 name: users.name,
             });
 
-        logAuditEvent({ action: 'register', userId: newUser.id, email });
+        logApiEvent('info', 'User registered', { userId: newUser.id, email }); logAuditEvent({ action: 'register', userId: newUser.id, email });
 
         return NextResponse.json(
             { message: 'User created successfully', user: newUser },

@@ -11,7 +11,7 @@ import type { RequestMeta } from '@/lib/email-templates';
 import type { EmailLocale } from '@/lib/get-email-locale';
 import { getEmailLocale } from '@/lib/get-email-locale';
 import { logAuditEvent } from '@/lib/audit-logger';
-import { logger, sendToLogtail } from '@/lib/logger';
+import { logger, sendToLogtail, logApiEvent } from '@/lib/logger';
 
 // Generate random 6-digit OTP using cryptographically secure randomness
 function generateOTP(): string {
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        logAuditEvent({ action: 'otp_send', email, details: { purpose } });
+        logApiEvent('info', 'OTP sent', { email, purpose }); logAuditEvent({ action: 'otp_send', email, details: { purpose } });
 
         return NextResponse.json(
             { message: 'OTP sent successfully' },
@@ -244,7 +244,7 @@ export async function PUT(request: NextRequest) {
             }
         }
 
-        logAuditEvent({ action: 'otp_verify', userId: user.id, email, details: { firstVerification: isFirstVerification } });
+        logApiEvent('info', 'OTP verified', { userId: user.id, firstVerification: isFirstVerification }); logAuditEvent({ action: 'otp_verify', userId: user.id, email, details: { firstVerification: isFirstVerification } });
 
         return NextResponse.json(
             { message: 'OTP verify successfully' },
