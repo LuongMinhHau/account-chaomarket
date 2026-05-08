@@ -20,7 +20,7 @@ export interface RequestMeta {
 const t = {
     vi: {
         slogan: 'Quản Lý Tài Khoản Của Bạn',
-        otpExpiry: 'Mã hết hạn sau 10 phút.',
+        otpExpiry: 'Mã hết hạn sau 5 phút.',
         whenWhere: 'Thời gian và vị trí thực hiện:',
         metaDate: 'Ngày:',
         metaBrowser: 'Trình duyệt:',
@@ -147,7 +147,7 @@ const t = {
     },
     en: {
         slogan: 'Manage Your Account',
-        otpExpiry: 'This code expires in 10 minutes.',
+        otpExpiry: 'This code expires in 5 minutes.',
         whenWhere: 'When and where it happened:',
         metaDate: 'Date:',
         metaBrowser: 'Browser:',
@@ -348,8 +348,8 @@ function baseLayout(
         ? `<div style="border-top:1px solid #d9d9d9;padding-top:12px;margin-top:20px;">
         <p style="color:#999;font-size:12px;font-weight:400;line-height:1.6;margin:0;text-align:center;">${
             locale === 'vi'
-                ? 'Đây là email tự động, vui lòng không trả lời. Nếu cần hỗ trợ, liên hệ <a href="mailto:support@chaomarket.com" style="color:#666;font-weight:600;text-decoration:underline;">support@chaomarket.com</a>'
-                : 'This is an automated email. Please do not reply. For assistance, contact <a href="mailto:support@chaomarket.com" style="color:#666;font-weight:600;text-decoration:underline;">support@chaomarket.com</a>'
+                ? 'Đây là email tự động, vui lòng không trả lời. Nếu cần hỗ trợ, liên hệ <a href="mailto:support@chaomarket.com" style="color:#666;font-weight:600;text-decoration:none;">support@chaomarket.com</a>'
+                : 'This is an automated email. Please do not reply. For assistance, contact <a href="mailto:support@chaomarket.com" style="color:#666;font-weight:600;text-decoration:none;">support@chaomarket.com</a>'
         }</p>
       </div>`
         : '';
@@ -418,7 +418,7 @@ function baseLayout(
 
 function otpBlock(otpCode: string, locale: EmailLocale): string {
     return `
-      <div style="background-color:transparent;border:2px solid #FFE400;border-radius:16px;padding:22px 28px;text-align:center;margin:20px 0 16px;">
+      <div style="background-color:transparent;border:2px solid #1a1a1a;border-radius:16px;padding:14px 28px;text-align:center;margin:20px 0 16px;">
         <span style="font-size:34px;font-weight:700;letter-spacing:10px;color:#1a1a1a;font-family:'Courier New',monospace;">${otpCode}</span>
       </div>
       <p style="color:#666;font-size:13px;text-align:center;margin:0 0 8px;">${t[locale].otpExpiry}</p>
@@ -433,16 +433,16 @@ function metaBlock(locale: EmailLocale, meta?: RequestMeta): string {
         <p style="color:#1a1a1a;font-size:14px;font-weight:700;margin:0 0 8px;line-height:1.4;">${tr.whenWhere}</p>`;
     if (meta.date)
         html += `
-        <p style="color:#333;font-size:14px;margin:0 0 2px;line-height:1.6;"><strong>${tr.metaDate}</strong> ${meta.date}</p>`;
+        <p style="font-size:14px;margin:0 0 2px;line-height:1.6;"><span style="color:#999;font-weight:400;">${tr.metaDate}</span> <strong style="color:#1a1a1a;">${meta.date}</strong></p>`;
     if (meta.browser)
         html += `
-        <p style="color:#333;font-size:14px;margin:0 0 2px;line-height:1.6;"><strong>${tr.metaBrowser}</strong> ${meta.browser}</p>`;
+        <p style="font-size:14px;margin:0 0 2px;line-height:1.6;"><span style="color:#999;font-weight:400;">${tr.metaBrowser}</span> <strong style="color:#1a1a1a;">${meta.browser}</strong></p>`;
     if (meta.os)
         html += `
-        <p style="color:#333;font-size:14px;margin:0 0 2px;line-height:1.6;"><strong>${tr.metaOS}</strong> ${meta.os}</p>`;
+        <p style="font-size:14px;margin:0 0 2px;line-height:1.6;"><span style="color:#999;font-weight:400;">${tr.metaOS}</span> <strong style="color:#1a1a1a;">${meta.os}</strong></p>`;
     if (meta.location)
         html += `
-        <p style="color:#333;font-size:14px;margin:0 0 2px;line-height:1.6;"><strong>${tr.metaLocation}</strong> ${meta.location}</p>`;
+        <p style="font-size:14px;margin:0 0 2px;line-height:1.6;"><span style="color:#999;font-weight:400;">${tr.metaLocation}</span> <strong style="color:#1a1a1a;">${meta.location}</strong></p>`;
     html += `
       </div>`;
     return html;
@@ -563,9 +563,9 @@ export function passwordChangedEmail(
     return baseLayout(
         `
       <p style="color:#1a1a1a;font-size:16px;font-weight:600;margin:0 0 16px;line-height:1.4;">${tr.greeting(userName)}</p>
-      <p style="color:#333;font-size:15px;line-height:1.6;margin:0 0 8px;">${tr.body}</p>
-      <p style="color:#c0392b;font-size:15px;line-height:1.6;margin:0 0 0;font-weight:600;">${tr.body2}</p>
+      <p style="color:#333;font-size:15px;line-height:1.6;margin:0 0 4px;">${tr.body}</p>
       ${metaBlock(locale, meta)}
+      <p style="color:#c0392b;font-size:14px;line-height:1.6;margin:24px 0 0;padding-top:16px;border-top:1px solid #ebebeb;">${tr.body2}</p>
     `,
         locale
     );
@@ -755,17 +755,19 @@ export function paymentConfirmationEmail(
     if (licenseItems && licenseItems.length > 0) {
         const licenseRows = licenseItems
             .map(lic => {
-                const expiryDate = new Date(lic.expiresAt).toLocaleDateString(
+                const expiryDateObj = new Date(lic.expiresAt);
+                const expiryDate = expiryDateObj.toLocaleDateString(
                     locale === 'vi' ? 'vi-VN' : 'en-US',
                     { day: '2-digit', month: '2-digit', year: 'numeric' }
                 );
+                const expiryTime = `${String(expiryDateObj.getHours()).padStart(2, '0')}:${String(expiryDateObj.getMinutes()).padStart(2, '0')}`;
                 const downloadBtn = lic.downloadLink
                     ? `<a href="${lic.downloadLink}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background-color:#FFE400;color:#1a1a1a;font-size:12px;font-weight:700;padding:6px 14px;border-radius:4px;text-decoration:none;margin-top:8px;border:1px solid #999;">${tr.downloadLabel}</a>`
                     : '';
                 return `
         <div style="padding:12px 0;border-bottom:1px solid #eee;">
           <p style="color:#1a1a1a;font-size:14px;font-weight:700;margin:0 0 6px;">${lic.productName}</p>
-          <p style="color:#666;font-size:12px;margin:0;">${tr.durationLabel} ${lic.durationMonths} ${tr.months} · ${tr.expiresLabel} ${expiryDate}</p>
+          <p style="font-size:12px;margin:0;"><span style="color:#999;">${tr.durationLabel}</span> <strong style="color:#1a1a1a;">${lic.durationMonths} ${tr.months}</strong> · <span style="color:#999;">${tr.expiresLabel}</span> <strong style="color:#1a1a1a;">${expiryTime}, ${expiryDate}</strong></p>
           ${downloadBtn}
         </div>`;
             })
@@ -827,22 +829,16 @@ export function consultationStatusUpdateEmail(
     const statusDisplay =
         status === 'completed'
             ? locale === 'vi'
-                ? '✅ Hoàn tất'
-                : '✅ Completed'
+                ? 'Hoàn tất'
+                : 'Completed'
             : status === 'cancelled'
               ? locale === 'vi'
-                  ? '🚫 Đã hủy'
-                  : '🚫 Cancelled'
+                  ? 'Đã hủy'
+                  : 'Cancelled'
               : locale === 'vi'
-                ? '❌ Từ chối'
-                : '❌ Rejected';
+                ? 'Từ chối'
+                : 'Rejected';
 
-    const statusColor =
-        status === 'completed'
-            ? '#22c55e'
-            : status === 'cancelled'
-              ? '#9ca3af'
-              : '#ef4444';
 
     const solutionsList = solutionNames
         .map(
@@ -857,14 +853,13 @@ export function consultationStatusUpdateEmail(
       <p style="color:#1a1a1a;font-size:16px;font-weight:600;margin:0 0 16px;line-height:1.4;">${tr.greeting(userName)}</p>
       <p style="color:#333;font-size:15px;line-height:1.6;margin:0 0 12px;">${body}</p>
       <div style="background-color:#faf8f3;border:1px solid #999;border-radius:8px;padding:16px 20px;margin:0 0 16px;">
-        <p style="color:#666;font-size:13px;font-weight:500;margin:0 0 4px;">${tr.statusLabel}</p>
-        <p style="color:${statusColor};font-size:18px;font-weight:700;margin:0;">${statusDisplay}</p>
-      </div>
-      <div style="background-color:#faf8f3;border:1px solid #999;border-radius:8px;padding:16px 20px;margin:0 0 16px;">
-        <p style="color:#1a1a1a;font-size:14px;font-weight:600;margin:0 0 10px;">${tr.solutionsLabel}</p>
-        <ul style="margin:0;padding-left:0;">
-          ${solutionsList}
-        </ul>
+        <p style="font-size:14px;margin:0 0 6px;"><span style="color:#999;">${tr.statusLabel}</span> <strong style="color:#1a1a1a;">${statusDisplay}</strong></p>
+        <div style="border-top:1px solid #e0e0e0;margin-top:12px;padding-top:12px;">
+          <p style="color:#999;font-size:13px;font-weight:400;margin:0 0 8px;">${tr.solutionsLabel}</p>
+          <ul style="margin:0;padding-left:0;">
+            ${solutionsList}
+          </ul>
+        </div>
       </div>
       <div style="text-align:center;margin:20px 0;">
         <a href="https://account.chaomarket.com/orders" style="display:inline-block;background-color:#FFE400;color:#1a1a1a;font-size:14px;font-weight:700;padding:10px 24px;border-radius:6px;text-decoration:none;letter-spacing:0.3px;border:1px solid #999;">${tr.cta}</a>

@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
 
         // Generate OTP
         const otpCode = generateOTP();
-        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
         // Case 1: Email exists but not confirmed
         if (user.emailVerified === null) {

@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { useI18n } from '@/context/i18n/context';
 
 const emailSchema = z.object({
-    email: z.string().min(1, 'Vui lòng nhập email').email('Email không hợp lệ'),
+    email: z.string().min(1, 'Email is required').email('Invalid email address'),
 });
 
 type EmailData = z.infer<typeof emailSchema>;
@@ -78,9 +78,9 @@ export default function ResetPasswordEmailStep({ onNext }: { onNext: (email: str
                         type="submit"
                         disabled={loading}
                         className={cn(
-                            'w-full bg-[var(--brand-color)] cursor-pointer text-black font-bold py-2 px-4 rounded-3xl',
+                            'w-full mt-2 bg-[var(--brand-color)] cursor-pointer text-black font-bold py-2 px-4 rounded-3xl',
                             'hover:bg-[var(--brand-color-foreground)] transition-colors! duration-300 ease-in-out text-[18px]!',
-                            'border border-black/20 dark:border-[var(--brand-grey-foreground)]/30',
+                            'border border-black/20 dark:border-[var(--brand-grey-foreground)]/30 h-12',
                             loading ? 'disabled:bg-transparent disabled:p-0' : ''
                         )}
                     >

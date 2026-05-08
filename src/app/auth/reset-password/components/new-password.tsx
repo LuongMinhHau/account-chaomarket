@@ -15,14 +15,14 @@ import { useI18n } from '@/context/i18n/context';
 const newPasswordSchema = z.object({
     password: z
         .string()
-        .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
-        .regex(/[A-Z]/, 'Cần ít nhất 1 chữ hoa')
-        .regex(/[a-z]/, 'Cần ít nhất 1 chữ thường')
-        .regex(/[0-9]/, 'Cần ít nhất 1 chữ số')
-        .regex(/[^A-Za-z0-9]/, 'Cần ít nhất 1 ký tự đặc biệt'),
-    confirmPassword: z.string().min(1, 'Vui lòng xác nhận mật khẩu'),
+        .min(8, 'Password must be at least 8 characters')
+        .regex(/[A-Z]/, 'At least 1 uppercase letter required')
+        .regex(/[a-z]/, 'At least 1 lowercase letter required')
+        .regex(/[0-9]/, 'At least 1 digit required')
+        .regex(/[^A-Za-z0-9]/, 'At least 1 special character required'),
+    confirmPassword: z.string().min(1, 'Please confirm your password'),
 }).refine(data => data.password === data.confirmPassword, {
-    message: 'Mật khẩu xác nhận không khớp',
+    message: 'Passwords do not match',
     path: ['confirmPassword'],
 });
 
@@ -134,7 +134,7 @@ export default function ResetPasswordNewPasswordStep({
                         className={cn(
                             'w-full bg-[var(--brand-color)] cursor-pointer text-black font-bold py-2 px-4 rounded-3xl',
                             'hover:bg-[var(--brand-color-foreground)] transition-colors! duration-300 ease-in-out text-[18px]!',
-                            'border border-black/20 dark:border-[var(--brand-grey-foreground)]/30',
+                            'border border-black/20 dark:border-[var(--brand-grey-foreground)]/30 h-12',
                             loading ? 'disabled:bg-transparent disabled:p-0' : ''
                         )}
                     >

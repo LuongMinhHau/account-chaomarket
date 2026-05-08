@@ -17,7 +17,7 @@ export default function CompletionStep() {
                 {t('auth.resetPassword.completeSubtitle')}
             </p>
             <Button
-                className="w-full bg-[var(--brand-color)] cursor-pointer text-black font-bold py-2 px-4 rounded-3xl hover:bg-[var(--brand-color-foreground)] transition-colors! duration-300 ease-in-out text-[18px]! border border-black/20 dark:border-[var(--brand-grey-foreground)]/30"
+                className="w-full h-12 bg-[var(--brand-color)] cursor-pointer text-black font-bold py-2 px-4 rounded-3xl hover:bg-[var(--brand-color-foreground)] transition-colors! duration-300 ease-in-out text-[18px]! border border-black/20 dark:border-[var(--brand-grey-foreground)]/30"
                 asChild
             >
                 <Link href="/auth/login">{t('auth.resetPassword.goToLogin')}</Link>

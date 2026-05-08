@@ -19,15 +19,12 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { FloatingLabelInput } from '@/components/ui/floating-input';
-import {
-    InputOTP,
-    InputOTPGroup,
-    InputOTPSlot,
-} from '@/components/ui/input-otp';
+import { OtpInput } from '@/components/ui/otp-input';
 import LoadingSpinner from '@/components/loading-spinner';
 import TabAuthMode from '@/app/auth/components/tab-auth-mode';
 import SocialLogin from '@/app/auth/components/social-login';
 import { useI18n } from '@/context/i18n/context';
+import { useOtpResend } from '@/hooks/use-otp-resend';
 
 export default function LoginPageWrapper() {
     return (
@@ -48,7 +45,15 @@ function EmailVerificationStep({
     const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const { countdown, canResend, isLocked, remainingResends, maxResend, onResendSuccess, lockCountdown, formatTime, blockExpired } = useOtpResend();
     const { t } = useI18n();
+
+    // Redirect when block expires (banking standard: restart flow)
+    useEffect(() => {
+        if (blockExpired) {
+            window.location.href = '/auth/login';
+        }
+    }, [blockExpired]);
 
     const handleVerifyOtp = async () => {
         if (otp.length !== 6) return;
@@ -75,57 +80,86 @@ function EmailVerificationStep({
         }
     };
 
+    const handleResendOtp = async () => {
+        if (!canResend) return;
+        setLoading(true);
+        setError('');
+        try {
+            const response = await fetch('/api/auth/otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, type: 'email' }),
+            });
+            if (response.ok) {
+                onResendSuccess();
+                setOtp('');
+            } else {
+                setError(t('auth.failedToResendOtp'));
+            }
+        } catch {
+            setError(t('auth.failedToResendOtp'));
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
-        <div className="space-y-8 flex flex-col justify-end h-[15.375rem]">
-            <div className="w-full">
-                <p className="text-sm dark:text-white text-[var(--brand-grey-foreground)] font-light mb-4">
-                    {t('auth.otpSentToEmail')}{' '}
-                    <span className="font-bold text-black dark:text-white">
-                        {email}
-                    </span>
-                </p>
-
-                <div className="flex flex-col items-center w-full">
-                    <InputOTP maxLength={6} value={otp} onChange={value => setOtp(value)}>
-                        <InputOTPGroup className={cn(
-                            'flex gap-4 mx-auto text-brand-text',
-                            '[&>div[data-slot=input-otp-slot]]:rounded-lg',
-                            '[&>div[data-slot=input-otp-slot]]:outline-0',
-                            'dark:[&>div[data-slot=input-otp-slot]]:ring-[var(--brand-color)]',
-                            '[&>div[data-slot=input-otp-slot]]:size-12',
-                            '[&>div[data-slot=input-otp-slot]]:text-xl',
-                            '[&>div[data-slot=input-otp-slot]]:border-2',
-                        )}>
-                            <InputOTPSlot index={0} />
-                            <InputOTPSlot index={1} />
-                            <InputOTPSlot index={2} />
-                            <InputOTPSlot index={3} />
-                            <InputOTPSlot index={4} />
-                            <InputOTPSlot index={5} />
-                        </InputOTPGroup>
-                    </InputOTP>
+        <div className="space-y-6">
+            <div className="space-y-4">
+                <div className="flex justify-center w-full">
+                    <OtpInput value={otp} onChange={setOtp} />
                 </div>
-            </div>
 
-            {error && (
-                <div className="flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg border border-red-500/30 dark:border-red-400/20 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="size-4 shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.06-1.06.75.75 0 011.06 1.06zM10 8a.75.75 0 01.75.75v5a.75.75 0 01-1.5 0v-5A.75.75 0 0110 8z" clipRule="evenodd" /></svg>
-                    {error}
-                </div>
-            )}
+                {error && (
+                    <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="size-4 shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.06-1.06.75.75 0 011.06 1.06zM10 8a.75.75 0 01.75.75v5a.75.75 0 01-1.5 0v-5A.75.75 0 0110 8z" clipRule="evenodd" /></svg>
+                        {error}
+                    </div>
+                )}
 
-            <div className="flex space-x-2 w-full">
                 <Button
                     onClick={handleVerifyOtp}
-                    disabled={loading}
+                    disabled={loading || otp.length !== 6}
                     className={cn(
-                        'flex-1 text-black min-h-[40px] bg-[var(--brand-color)] cursor-pointer rounded-3xl font-bold py-2 px-4 my-2',
-                        'hover:bg-[var(--brand-color-foreground)] transition-colors! duration-300 ease-in-out',
+                        'w-full text-black h-12 bg-[var(--brand-color)] cursor-pointer rounded-3xl font-bold py-2 px-4',
+                        'hover:bg-[var(--brand-color-foreground)] transition-colors! duration-300 ease-in-out text-[18px]!',
+                        'border border-black/20 dark:border-[var(--brand-grey-foreground)]/30',
                         loading ? 'disabled:bg-transparent disabled:p-0' : ''
                     )}
                 >
                     {loading ? <LoadingSpinner /> : t('common.continue')}
                 </Button>
+            </div>
+
+            <div className="flex flex-col items-center gap-1 -mt-2">
+                {isLocked ? (
+                    <p className="text-red-500 dark:text-red-400 text-sm text-center">
+                        {t('auth.resendLocked').replace('{time}', formatTime(lockCountdown))}
+                    </p>
+                ) : (
+                    <button
+                        onClick={handleResendOtp}
+                        disabled={loading || countdown > 0}
+                        className={cn(
+                            'text-[14px] font-semibold transition-colors cursor-pointer',
+                            countdown > 0
+                                ? 'text-[var(--brand-grey-foreground)]/50 cursor-default'
+                                : 'dark:text-[var(--brand-color)] text-black hover:underline',
+                            'disabled:opacity-50 disabled:cursor-default'
+                        )}
+                        type="button"
+                    >
+                        {countdown > 0
+                            ? `${t('auth.resendOtp')} (${Math.floor(countdown / 60)}:${(countdown % 60).toString().padStart(2, '0')})`
+                            : t('auth.resendOtp')
+                        }
+                    </button>
+                )}
+                {!isLocked && remainingResends < maxResend && (
+                    <span className="text-xs text-[var(--brand-grey-foreground)]">
+                        {t('auth.resendRemaining').replace('{remaining}', String(remainingResends)).replace('{max}', String(maxResend))}
+                    </span>
+                )}
             </div>
         </div>
     );
@@ -234,7 +268,7 @@ function LoginPage() {
                 setEmailVerified(false);
             }
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'Đã xảy ra lỗi.';
+            const message = err instanceof Error ? err.message : t('auth.loginError');
             setError(message);
         } finally {
             setLoading(false);
@@ -294,7 +328,7 @@ function LoginPage() {
 
     return (
         <div className="flex flex-col w-full h-full">
-            <div className="h-full w-full flex flex-col gap-10 justify-center pt-8">
+            <div className="h-full w-full flex flex-col gap-6 justify-center pt-8">
                 {error && (
                     <div className="flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg border border-red-500/30 dark:border-red-400/20 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400">
                         <svg xmlns="http://www.w3.org/2000/svg" className="size-4 shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.06-1.06.75.75 0 011.06 1.06zM10 8a.75.75 0 01.75.75v5a.75.75 0 01-1.5 0v-5A.75.75 0 0110 8z" clipRule="evenodd" /></svg>
@@ -303,9 +337,19 @@ function LoginPage() {
                 )}
 
                 <TabAuthMode />
-                <h2 className="mt-2 text-[20px] font-extrabold text-black/90 dark:text-brand-text">
-                    {t('auth.welcomeBack')}
-                </h2>
+                <div className="space-y-2">
+                    <h2 className="text-[20px] font-extrabold text-black/90 dark:text-brand-text">
+                        {t('auth.welcomeBack')}
+                    </h2>
+                    {emailVerified === false && loginData && (
+                        <p className="text-[var(--brand-grey-foreground)] text-[16px]">
+                            {t('auth.otpSentToEmail')}{' '}
+                            <span className="font-bold dark:text-[var(--brand-color)] text-black">
+                                {loginData.email}
+                            </span>.
+                        </p>
+                    )}
+                </div>
 
                 {emailVerified === false && loginData ? (
                     <EmailVerificationStep
@@ -316,7 +360,7 @@ function LoginPage() {
                     <Form {...form}>
                         <form
                             onSubmit={form.handleSubmit(handleCredentialsLogin)}
-                            className="h-fit min-h-[15.375rem] space-y-4"
+                            className="h-fit space-y-4"
                         >
                             <FormField
                                 control={form.control}
@@ -380,7 +424,7 @@ function LoginPage() {
                                 type="submit"
                                 disabled={loading}
                                 className={cn(
-                                    'w-full my-2 flex-1 bg-[var(--brand-color)] cursor-pointer text-black font-bold py-3',
+                                    'w-full my-2 bg-[var(--brand-color)] cursor-pointer text-black font-bold py-3',
                                     'px-6 rounded-3xl disabled:p-0 hover:bg-[var(--brand-color-foreground)]',
                                     'transition-colors! duration-300 ease-in-out text-[16px]!',
                                     'border border-black/20 dark:border-[var(--brand-grey-foreground)]/30 h-12',
@@ -395,7 +439,7 @@ function LoginPage() {
 
                 <div className="text-center text-brand-text font-medium flex flex-col gap-2 w-full">
                     <SocialLogin />
-                    <div className="text-[18px] font-medium flex gap-2 justify-center items-center">
+                    <div className="text-[16px] font-medium flex gap-2 justify-center items-center">
                         {t('auth.noAccountPrompt')}{' '}
                         <Link
                             href={`/auth/sign-up${searchParams.get('callbackUrl') ? `?callbackUrl=${encodeURIComponent(searchParams.get('callbackUrl')!)}` : ''}`}

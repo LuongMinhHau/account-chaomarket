@@ -7,7 +7,11 @@ import {
 } from '@/components/ui/carousel';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
-const LoginTheme = '/img/login-theme.png';
+const loginThemes = [
+    '/img/login-theme.png',
+    '/img/login-theme-2.png',
+    '/img/login-theme-3.png',
+];
 import React, { useEffect, useState } from 'react';
 import Autoplay from 'embla-carousel-autoplay';
 import { useI18n } from '@/context/i18n/context';
@@ -52,15 +56,15 @@ export default function CarouselLogin() {
             }}
         >
             <CarouselContent>
-                {Array.from({ length: 3 }).map((_, index) => (
+                {loginThemes.map((theme, index) => (
                     <CarouselItem key={index} className="pl-0 ">
                         <Card className="h-full w-auto py-0">
                             <CardContent className="relative flex h-full w-full items-center justify-center p-0">
                                 <Image
                                     width={1920}
                                     height={1080}
-                                    src={LoginTheme}
-                                    alt="Market Graph"
+                                    src={theme}
+                                    alt={`Brand visual ${index + 1}`}
                                     className="object-cover h-full w-full"
                                     unoptimized
                                 />
@@ -71,7 +75,7 @@ export default function CarouselLogin() {
             </CarouselContent>
             <div className="w-full absolute z-2 bottom-8 left-1/2 transform -translate-x-1/2">
                 <div className="w-full flex items-center justify-center gap-4 relative">
-                    {Array.from({ length: 3 }).map((_, index) => (
+                    {loginThemes.map((_, index) => (
                         <button
                             key={index}
                             onClick={() => scrollToIndex(index)}

@@ -25,7 +25,7 @@ import { SearchForm } from './search-form';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { status } = useSession();
-    const { t } = useI18n();
+    const { t, locale } = useI18n();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -54,6 +54,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             {
                 title: t('account.profile'),
                 url: '/profile',
+            },
+            {
+                title: locale === 'vi' ? 'Giỏ hàng' : 'Cart',
+                url: '/cart',
             },
             {
                 title: t('account.orderHistory'),

@@ -33,8 +33,8 @@ export default function SocialLogin() {
                     type="button"
                 >
                     <Image
-                        width={1920}
-                        height={1080}
+                        width={48}
+                        height={48}
                         className="size-12"
                         src="/img/google.svg"
                         alt="google-icon"

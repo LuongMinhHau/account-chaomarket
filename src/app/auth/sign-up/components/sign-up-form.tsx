@@ -198,7 +198,7 @@ export function SignUpForm({ onSignUpSuccess }: SignUpFormProps) {
 
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="h-fit space-y-5">
-                        <div className="lg:max-h-[30rem] px-2 overflow-y-auto py-1 space-y-5">
+                        <div className="lg:max-h-[30rem] overflow-y-auto py-1 space-y-5">
                             {/* Name row */}
                             <div className="flex space-x-2">
                                 <FormField
@@ -406,7 +406,7 @@ export function SignUpForm({ onSignUpSuccess }: SignUpFormProps) {
                                 value={String(termsAccepted)}
                                 onValueChange={value => {
                                     setTermsAccepted(Boolean(value));
-                                    if (Boolean(value) && error === 'Vui lòng đồng ý với điều khoản sử dụng.') {
+                                    if (Boolean(value) && error === t('auth.termsNotAccepted')) {
                                         setError('');
                                     }
                                 }}
@@ -423,9 +423,9 @@ export function SignUpForm({ onSignUpSuccess }: SignUpFormProps) {
                             </RadioGroup>
                             <label
                                 htmlFor="terms"
-                                className="text-[13px] lg:text-[15px] cursor-pointer text-[var(--brand-grey-foreground)] dark:text-white"
+                                className="text-[16px] cursor-pointer text-[var(--brand-grey-foreground)] dark:text-white"
                             >
-                                Bằng việc tạo tài khoản, tôi xác nhận mình{' '}
+                                {t('auth.termsAgreement.start')}{' '}
                                 <span className="font-bold">{t('auth.termsAgreement.startAgePrivacy')}</span> {t('auth.termsAgreement.startEndContent')}
                                 {' '}{t('auth.termsAgreement.startNewLine')}{' '}
                                 <Link className="dark:text-[var(--brand-color)] text-brand-text font-bold hover:underline" href="https://policy.chaomarket.com/terms-of-use" target="_blank" rel="noopener">
@@ -434,7 +434,7 @@ export function SignUpForm({ onSignUpSuccess }: SignUpFormProps) {
                                 {t('auth.termsAgreement.and')}{' '}
                                 <Link href="https://policy.chaomarket.com/privacy-policy" target="_blank" rel="noopener" className="dark:text-[var(--brand-color)] text-black font-bold hover:underline">
                                     {t('auth.termsAgreement.privacyNotice')}
-                                </Link>
+                                </Link>.
                             </label>
                         </div>
 
@@ -455,7 +455,7 @@ export function SignUpForm({ onSignUpSuccess }: SignUpFormProps) {
                 </Form>
                 <div className="text-center mt-2">
                     <SocialLogin />
-                    <div className="text-[18px] text-brand-text font-medium flex gap-2 justify-center items-center">
+                    <div className="text-[16px] text-brand-text font-medium flex gap-2 justify-center items-center">
                         {t('auth.alreadyHaveAccount')}{' '}
                         <Link
                             href={`/auth/login${searchParams.get('callbackUrl') ? `?callbackUrl=${encodeURIComponent(searchParams.get('callbackUrl')!)}` : ''}`}

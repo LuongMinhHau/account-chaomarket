@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
 
         // Generate OTP
         const otpCode = generateOTP();
-        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
         // Save hashed OTP to database (plain text is sent via email only)
         await db.insert(otpCodes).values({

@@ -27,6 +27,10 @@ export interface AuthTranslations {
     failedToResendOtp: string;
     didNotReceiveCode: string;
     resendOtp: string;
+    resendOtpCountdown: string;
+    resendLocked: string;
+    resendRemaining: string;
+    resendBlockExpired: string;
     termsAgreement: {
         start: string;
         startAgePrivacy: string;
