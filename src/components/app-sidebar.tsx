@@ -56,10 +56,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 url: '/profile',
             },
             {
-                title: locale === 'vi' ? 'Giỏ hàng' : 'Cart',
-                url: '/cart',
-            },
-            {
                 title: t('account.orderHistory'),
                 url: '/order-history',
             },

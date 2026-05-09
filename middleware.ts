@@ -32,6 +32,7 @@ export async function middleware(request: NextRequest) {
         '/support-policy',
         '/terms-of-use',
         '/monitoring',
+        '/purchase',
     ];
 
     if (publicPaths.some(path => pathname.startsWith(path)) || pathname === '/') {

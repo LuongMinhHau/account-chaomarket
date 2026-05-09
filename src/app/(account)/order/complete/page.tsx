@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { redirect, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useI18n } from '@/context/i18n/context';
-import { X, ShoppingCart, ArrowRight, Copy, Check, Download, Loader2 } from 'lucide-react';
+import { X, Copy, Check, Download, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { formatOrderCode } from '@/lib/format-order-code';
@@ -127,11 +127,8 @@ export default function CheckOutComplete() {
                     className={`max-w-lg w-full text-center transition-all duration-700 ease-out ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
                 >
                     {/* Icon */}
-                    <div className="relative mx-auto w-24 h-24 mb-6">
-                        <div className="absolute inset-0 rounded-full bg-red-500/20 animate-ping" style={{ animationDuration: '2s' }} />
-                        <div className="relative w-24 h-24 rounded-full bg-transparent border-2 border-red-500 grid place-items-center">
-                            <X className="w-16 h-16 text-red-500" strokeWidth={3} />
-                        </div>
+                    <div className="mx-auto w-14 h-14 rounded-full bg-red-500/10 grid place-items-center mb-6">
+                        <X className="w-7 h-7 text-red-500" strokeWidth={2.5} />
                     </div>
 
                     <h1 className="text-2xl lg:text-3xl font-bold text-brand-text dark:text-[var(--brand-color)] mb-2">
@@ -141,25 +138,18 @@ export default function CheckOutComplete() {
                     </h1>
                     <p className="text-[var(--brand-grey-foreground)] text-[16px] font-normal mb-6 leading-relaxed">
                         {locale === 'vi'
-                            ? 'Đơn hàng chưa được xử lý. Bạn có thể quay lại giỏ hàng để thử lại.'
-                            : 'Your order was not processed. You can return to your cart and try again.'}
+                            ? 'Đơn hàng chưa được xử lý. Bạn có thể thử lại hoặc liên hệ hỗ trợ.'
+                            : 'Your order was not processed. You can try again or contact support.'}
                     </p>
 
                     {/* Actions */}
                     <div className="flex flex-col items-center gap-4">
                         <Button
-                            className="h-10 px-5 text-[16px]! font-semibold rounded-lg bg-[var(--brand-color)] text-black border border-[var(--brand-color)] dark:border-black hover:bg-[var(--brand-color)]/90 hover:scale-[1.02] transition-all duration-300 gap-2"
-                            onClick={() => redirect('/cart')}
+                            className="h-10 px-5 text-[16px]! font-semibold rounded-lg bg-[var(--brand-color)] text-black border border-[var(--brand-color)] dark:border-black hover:bg-[var(--brand-color)]/90 hover:scale-[1.02] transition-all duration-300"
+                            onClick={() => redirect('/order-history')}
                         >
-                            <ShoppingCart className="w-4 h-4" strokeWidth={2.5} />
-                            {locale === 'vi' ? 'Quay lại giỏ hàng' : 'Back to Cart'}
+                            {locale === 'vi' ? 'Xem lịch sử đơn hàng' : 'View Order History'}
                         </Button>
-                        <Link
-                            href="/"
-                            className="w-fit mx-auto flex items-center justify-center gap-2 py-1 px-2.5 text-[16px] font-medium text-black/90 dark:text-[var(--brand-color)] bg-transparent border-0 rounded-lg hover:font-semibold transition-all duration-200"
-                        >
-                            {locale === 'vi' ? 'Về trang chủ' : 'Go to Home'}
-                        </Link>
                     </div>
                 </div>
             </div>
@@ -173,11 +163,8 @@ export default function CheckOutComplete() {
                 className={`max-w-lg w-full text-center transition-all duration-700 ease-out ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
             >
                 {/* Success icon */}
-                <div className="relative mx-auto w-24 h-24 mb-6">
-                    <div className="absolute inset-0 rounded-full bg-[var(--brand-color)]/20 animate-ping" style={{ animationDuration: '2s' }} />
-                    <div className="relative w-24 h-24 rounded-full bg-[var(--brand-color)] grid place-items-center">
-                        <Check className="w-16 h-16 text-black" strokeWidth={3} />
-                    </div>
+                <div className="mx-auto w-14 h-14 rounded-full bg-[var(--brand-color)] grid place-items-center mb-6">
+                    <Check className="w-7 h-7 text-black" strokeWidth={2.5} />
                 </div>
 
                 <h1 className="text-2xl lg:text-3xl font-bold text-brand-text dark:text-[var(--brand-color)] mb-2">
@@ -327,14 +314,7 @@ export default function CheckOutComplete() {
                         onClick={() => redirect('/order-history')}
                     >
                         {locale === 'vi' ? 'Quản lý đơn hàng' : 'Manage Orders'}
-                        <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
-                    <Link
-                        href="/"
-                        className="w-fit mx-auto flex items-center justify-center gap-2 py-1 px-2.5 text-[16px] font-medium text-black/90 dark:text-[var(--brand-color)] bg-transparent border-0 rounded-lg hover:font-semibold transition-all duration-200"
-                    >
-                        {locale === 'vi' ? 'Về trang chủ' : 'Go to Home'}
-                    </Link>
                 </div>
             </div>
         </div>

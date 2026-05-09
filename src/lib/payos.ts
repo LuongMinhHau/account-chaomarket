@@ -17,7 +17,11 @@ function getPayOS(): PayOS {
 // not during Next.js static analysis / build phase
 const payos = new Proxy({} as PayOS, {
     get(_target, prop) {
-        return Reflect.get(getPayOS(), prop);
+        const value = Reflect.get(getPayOS(), prop);
+        if (typeof value === 'function') {
+            return value.bind(getPayOS());
+        }
+        return value;
     },
 });
 
