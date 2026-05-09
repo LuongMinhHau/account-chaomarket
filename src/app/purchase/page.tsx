@@ -179,7 +179,7 @@ function PurchaseGateway() {
     }
 
     // ═══ NO PRODUCT ID ═══
-    if (!productId && status !== 'loading') {
+    if (!productId) {
         return (
             <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="mx-auto w-14 h-14 rounded-full bg-red-500/10 grid place-items-center mb-6">

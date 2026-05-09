@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
                     accountName: paymentLink.accountName,
                     amount: Math.round(totalAmount),
                     description: paymentLink.description,
-                    expiredAt: paymentLink.expiredAt,
+                    expiredAt: paymentLink.expiredAt ? String(paymentLink.expiredAt) : '',
                     product: {
                         name: product.name as Record<string, string>,
                         price: Math.round(price),
