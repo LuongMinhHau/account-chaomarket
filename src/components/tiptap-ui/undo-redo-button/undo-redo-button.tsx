@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any -- TipTap editor API uses dynamic chain methods */
 
 import * as React from 'react';
 import { type Editor } from '@tiptap/react';

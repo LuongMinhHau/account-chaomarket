@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Theme Test — Purchase Flow</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+            background: #111;
+            color: #eee;
+            padding: 24px;
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #FFD700;
+        }
+        .subtitle {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 32px;
+        }
+        .flow-section {
+            margin-bottom: 40px;
+        }
+        .flow-section h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ccc;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #FFD700;
+            color: #000;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .theme-pair {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .frame-wrapper {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #333;
+            background: #1a1a1a;
+        }
+        .frame-header {
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .frame-header.dark {
+            background: #1a1a1a;
+            color: #FFD700;
+        }
+        .frame-header.light {
+            background: #f5f5f5;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+        }
+        .theme-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .theme-dot.dark-dot { background: #333; border: 1px solid #666; }
+        .theme-dot.light-dot { background: #fff; border: 1px solid #ccc; }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+            display: block;
+        }
+        .note {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>🛒 Purchase Flow — UI Theme Test</h1>
+    <p class="subtitle">So sánh Dark / Light theme cho toàn bộ luồng mua hàng. Mỗi trang được hiển thị song song.</p>
+
+    <!-- Step 1: No Product -->
+    <div class="flow-section">
+        <h2><span class="step-badge">1</span> Không Tìm Thấy Sản Phẩm — /purchase (thiếu productId)</h2>
+        <div class="theme-pair">
+            <div class="frame-wrapper">
+                <div class="frame-header dark"><span class="theme-dot dark-dot"></span> Dark Theme</div>
+                <iframe src="/purchase?theme=dark"></iframe>
+            </div>
+            <div class="frame-wrapper">
+                <div class="frame-header light"><span class="theme-dot light-dot"></span> Light Theme</div>
+                <iframe src="/purchase?theme=light"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2: Login Gateway -->
+    <div class="flow-section">
+        <h2><span class="step-badge">2</span> Login Gateway — /purchase?productId=xxx (chưa đăng nhập)</h2>
+        <p class="note">⚠️ Nếu đã đăng nhập, trang sẽ tự chuyển sang bước 3 (tạo đơn hàng).</p>
+        <div class="theme-pair" style="margin-top: 8px">
+            <div class="frame-wrapper">
+                <div class="frame-header dark"><span class="theme-dot dark-dot"></span> Dark Theme</div>
+                <iframe id="login-dark"></iframe>
+            </div>
+            <div class="frame-wrapper">
+                <div class="frame-header light"><span class="theme-dot light-dot"></span> Light Theme</div>
+                <iframe id="login-light"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 3: Confirmation Success -->
+    <div class="flow-section">
+        <h2><span class="step-badge">3</span> Xác Nhận Thành Công — /checkout/confirmation?status=success</h2>
+        <div class="theme-pair">
+            <div class="frame-wrapper">
+                <div class="frame-header dark"><span class="theme-dot dark-dot"></span> Dark Theme</div>
+                <iframe src="/checkout/confirmation?orderCode=5060526001&status=success&theme=dark"></iframe>
+            </div>
+            <div class="frame-wrapper">
+                <div class="frame-header light"><span class="theme-dot light-dot"></span> Light Theme</div>
+                <iframe src="/checkout/confirmation?orderCode=5060526001&status=success&theme=light"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 4: Confirmation Cancelled -->
+    <div class="flow-section">
+        <h2><span class="step-badge">4</span> Thanh Toán Bị Hủy — /checkout/confirmation?status=CANCELLED</h2>
+        <div class="theme-pair">
+            <div class="frame-wrapper">
+                <div class="frame-header dark"><span class="theme-dot dark-dot"></span> Dark Theme</div>
+                <iframe src="/checkout/confirmation?orderCode=4040526001&status=CANCELLED&theme=dark"></iframe>
+            </div>
+            <div class="frame-wrapper">
+                <div class="frame-header light"><span class="theme-dot light-dot"></span> Light Theme</div>
+                <iframe src="/checkout/confirmation?orderCode=4040526001&status=CANCELLED&theme=light"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get first mock product ID from seed data
+        const MOCK_PRODUCT_ID = '7116a17b-df3c-419b-87b7-21d0017193c2';
+        document.getElementById('login-dark').src = `/purchase?productId=${MOCK_PRODUCT_ID}&plan=pro&duration=3&theme=dark`;
+        document.getElementById('login-light').src = `/purchase?productId=${MOCK_PRODUCT_ID}&plan=pro&duration=3&theme=light`;
+    </script>
+</body>
+</html>

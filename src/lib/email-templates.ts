@@ -112,8 +112,8 @@ const t = {
         paymentConfirmation: {
             title: 'Xác nhận thanh toán thành công',
             greeting: (name?: string) => (name ? `Xin chào ${name},` : 'Xin chào,'),
-            body: 'Thanh toán của bạn đã được xử lý thành công. Dưới đây là chi tiết đơn hàng:',
-            orderCodeLabel: 'Mã đơn hàng:',
+            body: 'Thanh toán của bạn đã được xử lý thành công. Dưới đây là chi tiết giao dịch:',
+            orderCodeLabel: 'Mã giao dịch:',
             itemsLabel: 'Sản phẩm đã mua:',
             totalLabel: 'Tổng thanh toán:',
             licenseLabel: 'Quyền truy cập & Tải xuống',
@@ -122,8 +122,8 @@ const t = {
             downloadLabel: 'Tải xuống',
             months: 'tháng',
             accessNote:
-                'Truy cập và quản lý sản phẩm của bạn tại Account → Order History trên website.',
-            cta: 'Xem đơn hàng',
+                'Truy cập và quản lý sản phẩm của bạn tại Account → Giao Dịch trên website.',
+            cta: 'Xem giao dịch',
             closing: 'Chúc bạn thành công trên hành trình đầu tư!',
             subject: 'Chào Market - Xác nhận thanh toán',
         },
@@ -240,7 +240,7 @@ const t = {
             title: 'Payment Confirmation',
             greeting: (name?: string) => (name ? `Hi ${name},` : 'Hi there,'),
             body: 'Your payment has been processed successfully. Here are your order details:',
-            orderCodeLabel: 'Order Code:',
+            orderCodeLabel: 'Transaction Code:',
             itemsLabel: 'Purchased Items:',
             totalLabel: 'Total Paid:',
             licenseLabel: 'Product Access & Downloads',
@@ -249,8 +249,8 @@ const t = {
             downloadLabel: 'Download',
             months: 'months',
             accessNote:
-                'Access and manage your products at Account → Order History on our website.',
-            cta: 'View Order History',
+                'Access and manage your products at Account → Transaction on our website.',
+            cta: 'View Transaction History',
             closing: 'Wishing you all the best on your investment journey!',
             subject: 'Chào Market - Payment Confirmation',
         },
@@ -726,7 +726,7 @@ export interface LicenseItem {
 }
 
 export function paymentConfirmationEmail(
-    orderCode: string,
+    transactionCode: string,
     items: PaymentItem[],
     totalAmount: number,
     locale: EmailLocale = 'vi',
@@ -787,7 +787,7 @@ export function paymentConfirmationEmail(
       <p style="color:#333;font-size:15px;line-height:1.6;margin:0 0 12px;">${tr.body}</p>
       <div style="background-color:#faf8f3;border:1px solid #999;border-radius:8px;padding:16px 20px;margin:0 0 16px;">
         <p style="color:#666;font-size:13px;font-weight:500;margin:0 0 4px;">${tr.orderCodeLabel}</p>
-        <p style="color:#1a1a1a;font-size:20px;font-weight:700;margin:0;letter-spacing:1px;">${orderCode}</p>
+        <p style="color:#1a1a1a;font-size:20px;font-weight:700;margin:0;letter-spacing:1px;">${transactionCode}</p>
       </div>
       <div style="background-color:#faf8f3;border:1px solid #999;border-radius:8px;padding:16px 20px;margin:0 0 16px;">
         <p style="color:#1a1a1a;font-size:14px;font-weight:600;margin:0 0 10px;">${tr.itemsLabel}</p>
@@ -802,7 +802,7 @@ export function paymentConfirmationEmail(
       <p style="color:#666;font-size:13px;margin:0 0 16px;">${timestamp}</p>
       <p style="color:#333;font-size:14px;line-height:1.6;margin:0 0 16px;font-weight:600;">${tr.accessNote}</p>
       <div style="text-align:center;margin:20px 0;">
-        <a href="https://account.chaomarket.com/orders" style="display:inline-block;background-color:#FFE400;color:#1a1a1a;font-size:14px;font-weight:700;padding:10px 24px;border-radius:6px;text-decoration:none;letter-spacing:0.3px;border:1px solid #999;">${tr.cta}</a>
+        <a href="https://account.chaomarket.com/transaction" style="display:inline-block;background-color:#FFE400;color:#1a1a1a;font-size:14px;font-weight:700;padding:10px 24px;border-radius:6px;text-decoration:none;letter-spacing:0.3px;border:1px solid #999;">${tr.cta}</a>
       </div>
       <p style="color:#333;font-size:15px;line-height:1.6;margin:0;">${tr.closing}</p>
     `,
@@ -862,7 +862,7 @@ export function consultationStatusUpdateEmail(
         </div>
       </div>
       <div style="text-align:center;margin:20px 0;">
-        <a href="https://account.chaomarket.com/orders" style="display:inline-block;background-color:#FFE400;color:#1a1a1a;font-size:14px;font-weight:700;padding:10px 24px;border-radius:6px;text-decoration:none;letter-spacing:0.3px;border:1px solid #999;">${tr.cta}</a>
+        <a href="https://account.chaomarket.com/transaction" style="display:inline-block;background-color:#FFE400;color:#1a1a1a;font-size:14px;font-weight:700;padding:10px 24px;border-radius:6px;text-decoration:none;letter-spacing:0.3px;border:1px solid #999;">${tr.cta}</a>
       </div>
       <p style="color:#333;font-size:15px;line-height:1.6;margin:0;">${tr.closing}</p>
     `,

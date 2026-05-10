@@ -607,8 +607,8 @@ export const vi: TranslationsStructure = {
         changePassword: 'Đổi Mật Khẩu',
         twoFactor: 'Xác Minh 2 Bước',
         notifications: 'Thông Báo',
-        orders: 'Đơn Hàng & Đăng Ký',
-        orderHistory: 'Lịch Sử Đơn Hàng',
+        orders: 'Giao Dịch & Đăng Ký',
+        orderHistory: 'Lịch Sử Giao Dịch',
         subscriptions: 'Gói Đăng Ký',
         legal: 'Điều Khoản & Pháp Lý',
         ecosystem: 'Hệ Sinh Thái Chào',
@@ -628,7 +628,7 @@ export const vi: TranslationsStructure = {
             security: 'Bảo mật',
             system: 'Hệ thống',
             account: 'Tài khoản',
-            order: 'Đơn hàng',
+            order: 'Giao dịch',
         },
         filter: {
             all: 'Tất cả',
@@ -831,7 +831,7 @@ export const vi: TranslationsStructure = {
                         '<br/>• <strong>Thanh toán trùng:</strong> Nếu bạn bị tính phí nhiều hơn một lần cho cùng một sản phẩm, bạn được hoàn tiền toàn bộ khoản thanh toán trùng.' +
                         '<br/>• <strong>Sản phẩm chưa được giao:</strong> Nếu sản phẩm số (mã bản quyền, link tải hoặc quyền truy cập khóa học) chưa được giao vào tài khoản sau khi thanh toán, bạn được hoàn tiền toàn bộ.' +
                         '<br/>• <strong>Lỗi kỹ thuật nghiêm trọng:</strong> Nếu sản phẩm đã mua có lỗi nghiêm trọng khiến không hoạt động đúng như mô tả và đội ngũ hỗ trợ không thể khắc phục.' +
-                        '<br/><br/><strong>Cách yêu cầu hoàn tiền:</strong> Liên hệ <a href="mailto:info@chaomarket.com">info@chaomarket.com</a> trong vòng <strong>7 ngày</strong> kể từ ngày mua kèm mã đơn hàng và mô tả vấn đề.',
+                        '<br/><br/><strong>Cách yêu cầu hoàn tiền:</strong> Liên hệ <a href="mailto:info@chaomarket.com">info@chaomarket.com</a> trong vòng <strong>7 ngày</strong> kể từ ngày mua kèm mã giao dịch và mô tả vấn đề.',
                 },
                 {
                     title: '4. Thời Gian & Phương Thức Hoàn Tiền',
@@ -843,7 +843,7 @@ export const vi: TranslationsStructure = {
                 {
                     title: '5. Liên Hệ',
                     content:
-                        'Mọi câu hỏi về đổi trả, hoàn tiền hoặc vấn đề đơn hàng, vui lòng liên hệ:' +
+                        'Mọi câu hỏi về đổi trả, hoàn tiền hoặc vấn đề giao dịch, vui lòng liên hệ:' +
                         '<br/>• <strong>Email:</strong> <a href="mailto:info@chaomarket.com">info@chaomarket.com</a>' +
                         '<br/>• <strong>Thời gian phản hồi:</strong> 1–2 ngày làm việc (Thứ Hai–Thứ Sáu, 09:00–17:00 UTC+7)',
                 },
@@ -984,7 +984,7 @@ export const vi: TranslationsStructure = {
     account: {
         notification: 'Thông Báo',
         profile: 'Hồ Sơ',
-        orderHistory: 'Lịch Sử Đơn Hàng',
+        orderHistory: 'Lịch Sử Giao Dịch',
         subscriptions: 'Gói Đăng Ký',
         security: 'Bảo Mật',
         legalCompliance: 'Điều Khoản',
@@ -1062,7 +1062,7 @@ export const vi: TranslationsStructure = {
             securityDesc: 'Đổi mật khẩu, hoạt động gần đây',
             servicesDesc: 'Xem tất cả dịch vụ hiện có',
             subscriptionsDesc: 'Quản lý gói đăng ký sản phẩm',
-            ordersDesc: 'Xem đơn hàng đã mua',
+            ordersDesc: 'Xem giao dịch đã thực hiện',
         },
         notificationSection: {
             title: 'Tùy Chọn Thông Báo',
@@ -1266,12 +1266,12 @@ export const vi: TranslationsStructure = {
             'Công cụ ước tính thời gian và nỗ lực cần để gỡ lại khoản lỗ.',
     },
     orders: {
-        title: 'Lịch Sử Đơn Hàng',
-        description: 'Theo dõi toàn bộ giao dịch và đơn hàng của bạn',
-        searchPlaceholder: 'Tìm theo mã đơn, phương thức thanh toán...',
-        results: 'đơn hàng',
-        noResults: 'Không tìm thấy đơn hàng phù hợp.',
-        fetchError: 'Không thể tải lịch sử đơn hàng',
+        title: 'Lịch Sử Giao Dịch',
+        description: 'Theo dõi toàn bộ giao dịch của bạn',
+        searchPlaceholder: 'Tìm theo mã giao dịch, phương thức thanh toán...',
+        results: 'giao dịch',
+        noResults: 'Không tìm thấy giao dịch phù hợp.',
+        fetchError: 'Không thể tải lịch sử giao dịch',
         status: {
             completed: 'Hoàn thành',
             pending: 'Đang chờ',
@@ -1283,7 +1283,7 @@ export const vi: TranslationsStructure = {
             starred: 'Đã đánh dấu',
         },
         col: {
-            orderCode: 'Mã Đơn',
+            orderCode: 'Mã Giao Dịch',
             payment: 'Thanh Toán',
             amount: 'Số Tiền',
             currency: 'Đơn Vị',
@@ -1300,8 +1300,8 @@ export const vi: TranslationsStructure = {
             last30: '30 ngày',
         },
         empty: {
-            title: 'Chưa có đơn hàng nào',
-            description: 'Đơn hàng của bạn sẽ hiển thị ở đây.',
+            title: 'Chưa có giao dịch nào',
+            description: 'Giao dịch của bạn sẽ hiển thị ở đây.',
         },
     },
     security: {

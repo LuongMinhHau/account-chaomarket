@@ -4,7 +4,6 @@ import { authOptions } from '@/lib/next-auth.config';
 import { db } from '@/lib/db';
 import { users, otpCodes } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { randomInt, createHash } from 'crypto';
 import { sendEmail } from '@/lib/brevo';
 import { generateId } from '@/utils/generate-id';
 import { changeEmailNewOtpEmail, getEmailSubject } from '@/lib/email-templates';
@@ -12,14 +11,13 @@ import { getEmailLocale } from '@/lib/get-email-locale';
 import { logAuditEvent } from '@/lib/audit-logger';
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
 import { logger, sendToLogtail } from '@/lib/logger';
+import { z } from 'zod';
 
-function generateOTP(): string {
-    return randomInt(100000, 1000000).toString();
-}
+const changeEmailSchema = z.object({
+    newEmail: z.string().email('Email không hợp lệ'),
+});
 
-function hashOTP(otp: string): string {
-    return createHash('sha256').update(otp).digest('hex');
-}
+import { generateOTP, hashOTP } from '@/lib/otp';
 
 /**
  * POST — Step 1: Send OTP to new email address
@@ -35,17 +33,11 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-        const { newEmail } = await request.json();
-
-        if (!newEmail || typeof newEmail !== 'string') {
-            return NextResponse.json({ error: 'Email mới là bắt buộc' }, { status: 400 });
+        const parsed = changeEmailSchema.safeParse(await request.json());
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error.issues[0]?.message || 'Email mới là bắt buộc' }, { status: 400 });
         }
-
-        // Validate email format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(newEmail)) {
-            return NextResponse.json({ error: 'Email không hợp lệ' }, { status: 400 });
-        }
+        const { newEmail } = parsed.data;
 
         // Get current user
         const [currentUser] = await db
@@ -124,11 +116,11 @@ export async function PUT(request: NextRequest) {
     }
 
     try {
-        const { newEmail } = await request.json();
-
-        if (!newEmail) {
+        const parsed = changeEmailSchema.safeParse(await request.json());
+        if (!parsed.success) {
             return NextResponse.json({ error: 'Email mới là bắt buộc' }, { status: 400 });
         }
+        const { newEmail } = parsed.data;
 
         const [currentUser] = await db
             .select()

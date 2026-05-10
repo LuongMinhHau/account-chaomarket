@@ -3,11 +3,10 @@
 import { useEffect, useState, Suspense, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, Copy, Check, ExternalLink } from 'lucide-react';
+import { Loader2, Copy, Check, CircleX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/context/i18n/context';
 import Link from 'next/link';
-import TabAuthMode from '@/app/auth/components/tab-auth-mode';
 
 /* ─── Types ─── */
 interface PaymentData {
@@ -33,7 +32,7 @@ const formatPrice = (price: number): string => {
     return new Intl.NumberFormat('vi-VN').format(price) + ' VND';
 };
 
-const formatOrderCode = (code: number | string): string => {
+const formatTransactionCode = (code: number | string): string => {
     return `#${String(code)}`;
 };
 
@@ -84,8 +83,8 @@ function PurchaseGateway() {
     const [productLoading, setProductLoading] = useState(!!productId);
     const [paymentStatus, setPaymentStatus] = useState<'PENDING' | 'PAID' | 'CANCELLED'>('PENDING');
 
-    // Ref to prevent duplicate order creation (StrictMode / refresh)
-    const orderCreatedRef = useRef(false);
+    // Ref to prevent duplicate transaction creation (StrictMode / refresh)
+    const transactionCreatedRef = useRef(false);
 
     // Fetch product name for unauthenticated view
     useEffect(() => {
@@ -104,8 +103,8 @@ function PurchaseGateway() {
 
     // Create order + get PayOS payment data
     useEffect(() => {
-        if (status === 'authenticated' && productId && !isCreating && !paymentData && !orderCreatedRef.current && !error) {
-            orderCreatedRef.current = true;
+        if (status === 'authenticated' && productId && !isCreating && !paymentData && !transactionCreatedRef.current && !error) {
+            transactionCreatedRef.current = true;
             setIsCreating(true);
             fetch('/api/purchase', {
                 method: 'POST',
@@ -126,16 +125,17 @@ function PurchaseGateway() {
                         // Fallback: redirect if no QR
                         window.location.href = data.data.checkoutUrl;
                     } else {
-                        setError(data.error?.message || 'Failed to create order');
-                        orderCreatedRef.current = false; // allow retry
+                        setError(data.error?.message || 'Failed to create transaction');
+                        transactionCreatedRef.current = false; // allow retry
                     }
                 })
                 .catch(() => {
                     setError('Network error');
-                    orderCreatedRef.current = false; // allow retry
+                    transactionCreatedRef.current = false; // allow retry
                 })
                 .finally(() => setIsCreating(false));
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [status, productId]);
 
     // Poll payment status every 3s
@@ -143,12 +143,12 @@ function PurchaseGateway() {
         if (!paymentData || paymentStatus !== 'PENDING') return;
 
         const interval = setInterval(() => {
-            fetch(`/api/payos/verify?orderCode=${paymentData.orderCode}`)
+            fetch(`/api/payos/verify?transactionCode=${paymentData.orderCode}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === 'PAID') {
                         setPaymentStatus('PAID');
-                        router.push(`/order/complete?orderCode=${paymentData.orderCode}&status=success`);
+                        router.push(`/checkout/confirmation?transactionCode=${paymentData.orderCode}&status=success`);
                     } else if (data.status === 'CANCELLED') {
                         setPaymentStatus('CANCELLED');
                     }
@@ -179,26 +179,29 @@ function PurchaseGateway() {
     }
 
     // ═══ NO PRODUCT ID ═══
-    if (!productId) {
+    // Skip if paymentData exists — after order creation, router.replace('/purchase')
+    // cleans URL params but paymentData remains in React state.
+    if (!productId && !paymentData && !isCreating && !error) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="mx-auto w-14 h-14 rounded-full bg-red-500/10 grid place-items-center mb-6">
-                    <span className="text-red-500 text-2xl font-bold">!</span>
+            <div className="flex flex-col w-full h-full">
+                <div className="h-full w-full flex flex-col justify-center items-center pt-8 text-center">
+                    {/* Message */}
+                    <p className="text-[18px] text-black/90 dark:text-white/90 font-medium leading-relaxed text-center">
+                        {locale === 'vi'
+                            ? 'Không tìm thấy sản phẩm. Vui lòng quay lại và chọn sản phẩm để mua.'
+                            : 'Product not found. Please go back and select a product to purchase.'}
+                    </p>
+
+                    {/* Back link */}
+                    <div className="text-center text-[16px] font-medium flex flex-col gap-3 mt-8">
+                        <button
+                            onClick={() => window.history.length > 1 ? window.history.back() : window.location.href = '/'}
+                            className="text-[var(--brand-grey-foreground)] font-semibold hover:text-brand-text dark:hover:text-[var(--brand-color)] hover:underline transition-all cursor-pointer"
+                        >
+                            ← {locale === 'vi' ? 'Quay lại' : 'Go back'}
+                        </button>
+                    </div>
                 </div>
-                <p className="text-brand-text dark:text-white font-semibold text-[16px] mb-2">
-                    {locale === 'vi' ? 'Không Tìm Thấy Sản Phẩm' : 'Product Not Found'}
-                </p>
-                <p className="text-[var(--brand-grey-foreground)] text-sm mb-6">
-                    {locale === 'vi'
-                        ? 'Vui lòng quay lại và chọn sản phẩm để mua.'
-                        : 'Please go back and select a product to purchase.'}
-                </p>
-                <button
-                    onClick={() => window.history.length > 1 ? window.history.back() : window.location.href = '/'}
-                    className="text-[var(--brand-grey-foreground)] font-semibold hover:text-brand-text dark:hover:text-[var(--brand-color)] hover:underline transition-all cursor-pointer"
-                >
-                    ← {locale === 'vi' ? 'Quay lại' : 'Go back'}
-                </button>
             </div>
         );
     }
@@ -209,7 +212,7 @@ function PurchaseGateway() {
             <div className="flex flex-col items-center justify-center py-20">
                 <Loader2 className="w-10 h-10 animate-spin text-[var(--brand-color)] mb-6" />
                 <p className="text-brand-text dark:text-white font-semibold text-[16px] mb-1">
-                    {locale === 'vi' ? 'Đang Tạo Đơn Hàng...' : 'Creating Your Order...'}
+                    {locale === 'vi' ? 'Đang Xử Lý...' : 'Processing...'}
                 </p>
                 <p className="text-[var(--brand-grey-foreground)] text-sm">
                     {locale === 'vi'
@@ -223,25 +226,36 @@ function PurchaseGateway() {
     // ═══ ERROR STATE ═══
     if (error) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="mx-auto w-14 h-14 rounded-full bg-red-500/10 grid place-items-center mb-6">
-                    <span className="text-red-500 text-2xl font-bold">!</span>
+            <div className="flex flex-col w-full h-full">
+                <div className="h-full w-full flex flex-col justify-center items-center pt-8 text-center">
+                    {/* Icon — synced with confirmation page */}
+                    <div className="mb-6">
+                        <CircleX className="w-16 h-16 mx-auto text-red-500/80" strokeWidth={1.5} />
+                    </div>
+                    <p className="text-brand-text dark:text-[var(--brand-color)] font-bold text-xl mb-2">
+                        {locale === 'vi' ? 'Không Thể Tạo Giao Dịch' : 'Failed To Create Transaction'}
+                    </p>
+                    <p className="text-black/90 dark:text-white/90 text-[18px] font-medium mb-6 leading-relaxed">{error}</p>
+                    <Button
+                        onClick={() => window.location.reload()}
+                        className="h-10 px-6 text-[16px]! font-semibold rounded-lg bg-[var(--brand-color)] text-black border border-[var(--brand-color)] dark:border-black hover:bg-[var(--brand-color)]/90 transition-all duration-300"
+                    >
+                        {locale === 'vi' ? 'Thử lại' : 'Try Again'}
+                    </Button>
+                    <button
+                        onClick={() => window.history.length > 1 ? window.history.back() : window.location.href = '/'}
+                        className="text-[var(--brand-grey-foreground)] font-semibold hover:text-brand-text dark:hover:text-[var(--brand-color)] hover:underline transition-all cursor-pointer text-[16px] mt-4"
+                    >
+                        ← {locale === 'vi' ? 'Quay lại' : 'Go back'}
+                    </button>
                 </div>
-                <p className="text-brand-text dark:text-white font-semibold text-[16px] mb-2">
-                    {locale === 'vi' ? 'Không Thể Tạo Đơn Hàng' : 'Failed To Create Order'}
-                </p>
-                <p className="text-[var(--brand-grey-foreground)] text-sm mb-6">{error}</p>
-                <Button
-                    onClick={() => window.location.reload()}
-                    className="h-10 px-6 text-[16px]! font-semibold rounded-lg bg-[var(--brand-color)] text-black border border-[var(--brand-color)] dark:border-black hover:bg-[var(--brand-color)]/90 transition-all duration-300"
-                >
-                    {locale === 'vi' ? 'Thử lại' : 'Try Again'}
-                </Button>
             </div>
         );
     }
 
     // ═══ EMBEDDED CHECKOUT (AUTHENTICATED + PAYMENT DATA) ═══
+    // MUST check BEFORE !productId — after order creation, router.replace('/purchase')
+    // cleans URL params, but paymentData remains in React state.
     if (paymentData) {
         const pName = paymentData.product.name[locale] || paymentData.product.name.vi || paymentData.product.name.en || 'Product';
 
@@ -250,7 +264,7 @@ function PurchaseGateway() {
                 {/* Header */}
                 <div className="text-center mb-8">
                     <h1 className="text-2xl lg:text-3xl font-bold text-brand-text dark:text-[var(--brand-color)]">
-                        {locale === 'vi' ? 'Thanh Toán Đơn Hàng' : 'Order Payment'}
+                        {locale === 'vi' ? 'Thanh Toán' : 'Payment'}
                     </h1>
                     <p className="text-[var(--brand-grey-foreground)] text-[16px] mt-2">
                         {locale === 'vi'
@@ -263,7 +277,7 @@ function PurchaseGateway() {
                 <div className="flex flex-col md:flex-row gap-6">
 
                     {/* LEFT: QR Code */}
-                    <div className="w-full md:w-1/2 rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] p-6 flex flex-col items-center justify-center">
+                    <div className="w-full md:w-[38%] rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] p-6 flex flex-col items-center justify-center">
                         <div className="bg-white rounded-xl p-3 shadow-sm">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
@@ -283,27 +297,30 @@ function PurchaseGateway() {
                     </div>
 
                     {/* RIGHT: Order Info + Bank Transfer */}
-                    <div className="w-full md:w-1/2 flex flex-col gap-4">
+                    <div className="w-full md:w-[62%] flex flex-col gap-4">
 
-                        {/* Order Info */}
+                        {/* Transaction Code row */}
                         <div className="rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] overflow-hidden">
                             <div className="px-5 py-3 border-b border-black/5 dark:border-white/5">
                                 <p className="text-[13px] uppercase tracking-wider text-[var(--brand-grey-foreground)] font-medium">
-                                    {locale === 'vi' ? 'Đơn hàng' : 'Order'}
+                                    {locale === 'vi' ? 'Giao dịch' : 'Transaction'}
                                 </p>
                             </div>
                             <div className="p-5 space-y-3">
                                 {/* Product */}
                                 <div className="flex items-center justify-between">
                                     <div className="flex-1 min-w-0 mr-3">
-                                        <p className="font-semibold text-brand-text dark:text-white text-[17px] truncate">
+                                        <p className="font-semibold text-black dark:text-[var(--brand-color)] text-[17px] truncate">
                                             {pName}
                                         </p>
-                                        <div className="flex items-center gap-2 mt-0.5 text-[14px] text-[var(--brand-grey-foreground)]">
+                                        <div className="flex items-center gap-1.5 mt-0.5 text-[14px] text-[var(--brand-grey-foreground)]">
                                             {paymentData.product.plan !== 'free' && (
-                                                <span className="inline-block px-1.5 py-0.5 rounded text-[12px] font-bold bg-[var(--brand-color)]/20 text-[var(--brand-color)]">
-                                                    {paymentData.product.plan.charAt(0).toUpperCase() + paymentData.product.plan.slice(1)}
-                                                </span>
+                                                <>
+                                                    <span className="font-semibold">
+                                                        {paymentData.product.plan.charAt(0).toUpperCase() + paymentData.product.plan.slice(1)}
+                                                    </span>
+                                                    <span>·</span>
+                                                </>
                                             )}
                                             <span>
                                                 {paymentData.product.durationMonths}{' '}
@@ -316,16 +333,16 @@ function PurchaseGateway() {
                                     </p>
                                 </div>
 
-                                {/* Order Code */}
+                                {/* Transaction Code */}
                                 <div className="flex items-center justify-between pt-2 border-t border-black/5 dark:border-white/5">
                                     <span className="text-[16px] text-[var(--brand-grey-foreground)]">
-                                        {locale === 'vi' ? 'Mã đơn' : 'Order code'}
+                                        {locale === 'vi' ? 'Mã giao dịch' : 'Transaction code'}
                                     </span>
                                     <button
                                         onClick={() => copyToClipboard(String(paymentData.orderCode), 'code')}
                                         className="flex items-center gap-1.5 text-[16px] font-semibold text-brand-text dark:text-white cursor-pointer hover:text-[var(--brand-color)] transition-colors"
                                     >
-                                        {formatOrderCode(paymentData.orderCode)}
+                                        {formatTransactionCode(paymentData.orderCode)}
                                         {copied === 'code'
                                             ? <Check className="w-3.5 h-3.5 text-[var(--brand-color)]" />
                                             : <Copy className="w-3.5 h-3.5 opacity-40" />}
@@ -403,22 +420,12 @@ function PurchaseGateway() {
                             </div>
                         </div>
 
-                        {/* Status + PayOS link */}
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-amber-500 dark:bg-[var(--brand-color)] animate-pulse" />
-                                <p className="text-[14px] text-amber-600 dark:text-[var(--brand-color)]">
-                                    {locale === 'vi' ? 'Đang chờ thanh toán...' : 'Waiting for payment...'}
-                                </p>
-                            </div>
-                            <Link
-                                href={paymentData.checkoutUrl}
-                                target="_blank"
-                                className="inline-flex items-center gap-1 text-[13px] text-[var(--brand-grey-foreground)] hover:text-brand-text dark:hover:text-[var(--brand-color)] transition-colors"
-                            >
-                                <ExternalLink className="w-3 h-3" />
-                                PayOS
-                            </Link>
+                        {/* Status */}
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-black dark:bg-[var(--brand-color)] animate-pulse" />
+                            <p className="text-[16px] text-black dark:text-[var(--brand-color)]">
+                                {locale === 'vi' ? 'Đang chờ thanh toán...' : 'Waiting for payment...'}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -432,11 +439,9 @@ function PurchaseGateway() {
     return (
         <div className="flex flex-col w-full h-full">
             <div className="h-full w-full flex flex-col justify-center pt-8">
-                {/* Logo + Brand + Slogan */}
-                <TabAuthMode />
 
                 {/* Notification */}
-                <p className="text-[16px] text-[var(--brand-grey-foreground)] font-normal leading-relaxed mt-6">
+                <p className="text-[18px] text-black/90 dark:text-white/90 font-medium leading-relaxed mt-6 mx-auto w-fit">
                     {productLoading
                         ? <span className="inline-flex items-center gap-2">
                             <Loader2 className="w-4 h-4 animate-spin" />
@@ -458,7 +463,7 @@ function PurchaseGateway() {
                 {/* Primary CTA */}
                 <Button
                     asChild
-                    className="w-full h-12 bg-[var(--brand-color)] cursor-pointer text-black font-bold px-6 rounded-3xl hover:bg-[var(--brand-color-foreground)] transition-colors! duration-300 ease-in-out text-[16px]! border border-black/20 dark:border-[var(--brand-grey-foreground)]/30 mt-8"
+                    className="w-fit mx-auto h-12 bg-[var(--brand-color)] cursor-pointer text-black font-bold px-12 rounded-3xl hover:bg-[var(--brand-color-foreground)] transition-colors! duration-300 ease-in-out text-[16px]! border border-black/20 dark:border-[var(--brand-grey-foreground)]/30 mt-8"
                 >
                     <Link href={`/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`}>
                         {locale === 'vi' ? 'Đăng nhập' : 'Sign In'}

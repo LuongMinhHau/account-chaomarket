@@ -297,7 +297,7 @@ function ChartLegendContent({
     }) {
     const { config } = useChart();
 
-    const buildSvgColor = (color?: string) =>
+    const _buildSvgColor = (color?: string) =>
         color ? `[&>svg]:text-[${color}]` : `[&>svg]:text-muted-foreground`;
 
     if (!payload?.length) {

@@ -1,7 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
-import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { Pencil, Loader2, CheckCircle2, Calendar, Mail, Camera, AlertCircle } from 'lucide-react';
 import AvatarCropDialog from '@/components/avatar-crop-dialog';
 import { BirthDatePicker } from '@/components/birth-date-picker';
@@ -9,20 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-} from '@/components/ui/dialog';
-import {
-    InputOTP,
-    InputOTPGroup,
-    InputOTPSlot,
-} from '@/components/ui/input-otp';
 import { FloatingLabelInput } from '@/components/ui/floating-input';
-
 import {
     Form,
     FormControl,
@@ -30,434 +16,32 @@ import {
     FormItem,
     FormMessage,
 } from '@/components/ui/form';
-import { useForm, useFormState } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import LoadingSpinner from '@/components/loading-spinner';
 import PageHeader from '@/components/page-header';
-import { useRouter } from 'next/navigation';
-import { usePageTitle } from '@/hooks/use-page-title';
-import { useI18n } from '@/context/i18n/context';
+import OtpVerificationDialog from './_components/otp-verification-dialog';
+import ReadOnlyField from './_components/read-only-field';
+import { useProfilePage } from './_components/use-profile-page';
 
-// ── Schema ──
-function createProfileSchema(t: (key: any) => string) {
-    return z.object({
-        email: z
-            .string()
-            .email(t('account.profilePage.emailInvalid')),
-        name: z
-            .string()
-            .min(1, t('account.profilePage.nameRequired'))
-            .max(100, t('account.profilePage.nameMax'))
-            .regex(/^[\p{L}\s]+$/u, t('account.profilePage.nameLettersOnly')),
-        phone: z
-            .string()
-            .optional()
-            .refine(val => !val || /^[0-9+\-\s()]+$/.test(val), t('account.profilePage.phoneInvalid'))
-            .refine(val => !val || val.replace(/[\s\-()]/g, '').length >= 9, t('account.profilePage.phoneMin'))
-            .refine(val => !val || val.replace(/[\s\-()]/g, '').length <= 15, t('account.profilePage.phoneMax')),
-        gender: z.enum(['male', 'female', 'other']).optional(),
-        otherGender: z.string().max(50, t('account.profilePage.genderCustomMax')).optional(),
-        dateOfBirth: z
-            .string()
-            .optional()
-            .refine(val => {
-                if (!val) return true;
-                const d = new Date(val);
-                return d.getFullYear() >= 1920;
-            }, t('account.profilePage.dobInvalid'))
-            .refine(val => {
-                if (!val) return true;
-                const d = new Date(val);
-                const today = new Date();
-                const age18 = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
-                return d <= age18;
-            }, t('account.profilePage.dobMinAge')),
-    }).refine(
-        data => {
-            if (data.gender === 'other') {
-                return !!data.otherGender && data.otherGender.trim().length > 0;
-            }
-            return true;
-        },
-        {
-            message: t('account.profilePage.genderRequired'),
-            path: ['otherGender'],
-        }
-    );
-}
-
-
-
-interface ProfileData {
-    id: string;
-    name: string | null;
-    email: string;
-    phone: string | null;
-    gender: string | null;
-    dateOfBirth: string | null;
-    image: string | null;
-    createdAt: string;
-    emailVerified: string | null;
-}
-
-// ── ReadOnly Field (matching Web design) ──
-function ReadOnlyField({
-    label,
-    value,
-}: {
-    label: React.ReactNode;
-    value: string | React.ReactNode;
-}) {
-    return (
-        <div className="py-2">
-            <div className="text-[14px] font-normal text-muted-foreground mb-1">
-                {label}
-            </div>
-            <div className="text-[16px] font-medium text-foreground">
-                {value || (
-                    <span className="text-muted-foreground/50">
-                        —
-                    </span>
-                )}
-            </div>
-        </div>
-    );
-}
 
 export default function ProfilePage() {
-    const { data: session, status, update } = useSession();
-    const router = useRouter();
-    const { t, locale } = useI18n();
-    usePageTitle('account.profile');
-    const [profile, setProfile] = useState<ProfileData | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [isEditing, setIsEditing] = useState(false);
-    const [saving, setSaving] = useState(false);
-    const [successMessage, setSuccessMessage] = useState('');
-    const [avatarUploading, setAvatarUploading] = useState(false);
-    const avatarInputRef = useRef<HTMLInputElement>(null);
-    const [avatarCropSrc, setAvatarCropSrc] = useState<string>('');
-    const [avatarCropOpen, setAvatarCropOpen] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('');
-    const [avatarKey, setAvatarKey] = useState(0);
-    const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
-    const [avatarOtpDialogOpen, setAvatarOtpDialogOpen] = useState(false);
-    const [avatarOtp, setAvatarOtp] = useState('');
-    const [avatarOtpError, setAvatarOtpError] = useState('');
-    const [avatarOtpSending, setAvatarOtpSending] = useState(false);
-
-
-
-    // Profile OTP state
-    const [profileOtpDialogOpen, setProfileOtpDialogOpen] = useState(false);
-    const [profileOtp, setProfileOtp] = useState('');
-    const [profileOtpSending, setProfileOtpSending] = useState(false);
-    const [profileOtpError, setProfileOtpError] = useState('');
-    const [pendingProfileData, setPendingProfileData] = useState<ProfileFormData | null>(null);
-
-    const profileSchema = createProfileSchema(t);
-    type ProfileFormData = z.infer<typeof profileSchema>;
-
-    const form = useForm<ProfileFormData>({
-        resolver: zodResolver(profileSchema),
-        mode: 'onSubmit',
-        reValidateMode: 'onSubmit',
-        defaultValues: {
-            email: '',
-            name: '',
-            phone: '',
-            gender: undefined,
-            otherGender: '',
-            dateOfBirth: '',
-        },
-    });
-
-    const { isDirty } = useFormState({ control: form.control });
-
-    useEffect(() => {
-        if (status === 'unauthenticated') {
-            router.push('/auth/login?callbackUrl=/profile');
-            return;
-        }
-        if (status === 'authenticated') {
-            fetchProfile();
-        }
-    }, [status]);
-
-    const fetchProfile = async () => {
-        try {
-            const res = await fetch('/api/account/profile');
-            if (res.ok) {
-                const data = await res.json();
-                const user = data.user;
-                setProfile(user);
-                // Sync sidebar avatar if session is stale
-                if (user.image !== session?.user?.image) {
-                    await update();
-                }
-                const genderVal = user.gender;
-                const isStandard = ['male', 'female', 'other'].includes(genderVal || '');
-                form.reset({
-                    email: user.email || '',
-                    name: user.name || '',
-                    phone: user.phone || '',
-                    gender: isStandard ? genderVal : (genderVal ? 'other' : undefined),
-                    otherGender: (!isStandard && genderVal) ? genderVal : '',
-                    dateOfBirth: user.dateOfBirth ? user.dateOfBirth.split('T')[0] : '',
-                });
-            }
-        } catch {
-            // silent
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const onSubmit = async (data: ProfileFormData) => {
-        // Step 1: Send OTP to current email before saving
-        setPendingProfileData(data);
-        setProfileOtpSending(true);
-        setProfileOtpError('');
-        try {
-            const res = await fetch('/api/auth/otp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: profile?.email,
-                    type: 'email',
-                    purpose: 'editProfile',
-                }),
-            });
-            if (res.ok) {
-                setProfileOtpDialogOpen(true);
-                setProfileOtp('');
-            } else {
-                setProfileOtpError(t('account.profilePage.otpSendFailed'));
-            }
-        } catch {
-            setProfileOtpError(t('account.profilePage.genericError'));
-        } finally {
-            setProfileOtpSending(false);
-        }
-    };
-
-    // Step 2: Verify OTP then save profile
-    const handleProfileOtpVerify = async () => {
-        if (profileOtp.length !== 6) {
-            setProfileOtpError(t('account.profilePage.otpPlaceholder'));
-            return;
-        }
-        if (!pendingProfileData) return;
-
-        setSaving(true);
-        setProfileOtpError('');
-        try {
-            // Verify OTP first
-            const otpRes = await fetch('/api/auth/otp', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: profile?.email,
-                    otp: profileOtp,
-                }),
-            });
-            if (!otpRes.ok) {
-                const otpData = await otpRes.json();
-                setProfileOtpError(otpData.error || t('account.profilePage.otpInvalid'));
-                return;
-            }
-
-            // OTP verified — check if email changed
-            const emailChanged = pendingProfileData.email.toLowerCase() !== profile?.email?.toLowerCase();
-
-            if (emailChanged) {
-                // Update email via change-email API
-                const emailRes = await fetch('/api/account/change-email', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        newEmail: pendingProfileData.email,
-                        otp: profileOtp,
-                    }),
-                });
-                if (!emailRes.ok) {
-                    const emailData = await emailRes.json();
-                    setProfileOtpError(emailData.error || t('account.profilePage.profileUpdateFailed'));
-                    return;
-                }
-            }
-
-            // Save other profile fields
-            const res = await fetch('/api/account/profile', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: pendingProfileData.name,
-                    phone: pendingProfileData.phone,
-                    gender: pendingProfileData.gender === 'other'
-                        ? (pendingProfileData.otherGender || 'other')
-                        : pendingProfileData.gender,
-                    dateOfBirth: pendingProfileData.dateOfBirth,
-                }),
-            });
-            if (res.ok) {
-                setProfileOtpDialogOpen(false);
-                setSuccessMessage(t('account.profilePage.profileUpdated'));
-                setIsEditing(false);
-                setPendingProfileData(null);
-                fetchProfile();
-                setTimeout(() => setSuccessMessage(''), 5000);
-            }
-        } catch {
-            setProfileOtpError(t('account.profilePage.genericError'));
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleCancel = () => {
-        form.reset();
-        setIsEditing(false);
-        setPendingAvatarFile(null);
-    };
-
-    const getJoinedText = (dateStr: string) => {
-        const d = new Date(dateStr);
-        const localeStr = locale === 'vi' ? 'vi-VN' : 'en-US';
-        const weekday = d.toLocaleDateString(localeStr, { weekday: 'long' });
-        const day = d.getDate();
-        const month = d.getMonth() + 1;
-        const year = d.getFullYear();
-        const hours = d.getHours().toString().padStart(2, '0');
-        const minutes = d.getMinutes().toString().padStart(2, '0');
-        if (locale === 'vi') {
-            return `${t('account.profilePage.joinedAt')} ${hours}:${minutes}, ${weekday}, ngày ${day} tháng ${month} năm ${year}`;
-        }
-        return `${t('account.profilePage.joinedAt')} ${hours}:${minutes}, ${weekday}, ${month}/${day}/${year}`;
-    };
-
-    const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        if (file.size > 5 * 1024 * 1024) {
-            setErrorMessage(t('account.profilePage.avatarMaxSize'));
-            setTimeout(() => setErrorMessage(''), 5000);
-            if (avatarInputRef.current) avatarInputRef.current.value = '';
-            return;
-        }
-        if (!file.type.startsWith('image/')) {
-            setErrorMessage(t('account.profilePage.avatarInvalidFormat'));
-            setTimeout(() => setErrorMessage(''), 5000);
-            if (avatarInputRef.current) avatarInputRef.current.value = '';
-            return;
-        }
-        // Open crop dialog with selected image
-        const reader = new FileReader();
-        reader.onload = () => {
-            setAvatarCropSrc(reader.result as string);
-            setAvatarCropOpen(true);
-        };
-        reader.readAsDataURL(file);
-        if (avatarInputRef.current) avatarInputRef.current.value = '';
-    };
-
-    const handleCropConfirm = async (croppedFile: File) => {
-        setAvatarCropOpen(false);
-        setPendingAvatarFile(croppedFile);
-        // Send OTP for avatar change verification
-        setAvatarOtpSending(true);
-        setAvatarOtpError('');
-        try {
-            const res = await fetch('/api/auth/otp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: profile?.email,
-                    type: 'email',
-                    purpose: 'editProfile',
-                }),
-            });
-            if (res.ok) {
-                setAvatarOtpDialogOpen(true);
-                setAvatarOtp('');
-            } else {
-                setErrorMessage(t('account.profilePage.otpSendFailed'));
-                setTimeout(() => setErrorMessage(''), 5000);
-                setPendingAvatarFile(null);
-            }
-        } catch {
-            setErrorMessage(t('account.profilePage.genericError'));
-            setTimeout(() => setErrorMessage(''), 5000);
-            setPendingAvatarFile(null);
-        } finally {
-            setAvatarOtpSending(false);
-        }
-    };
-
-    const handleAvatarOtpVerify = async () => {
-        if (avatarOtp.length !== 6) {
-            setAvatarOtpError(t('account.profilePage.otpPlaceholder'));
-            return;
-        }
-        if (!pendingAvatarFile) return;
-
-        setAvatarUploading(true);
-        setAvatarOtpError('');
-        try {
-            // Verify OTP first
-            const otpRes = await fetch('/api/auth/otp', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: profile?.email,
-                    otp: avatarOtp,
-                }),
-            });
-            if (!otpRes.ok) {
-                const otpData = await otpRes.json();
-                setAvatarOtpError(otpData.error || t('account.profilePage.otpInvalid'));
-                return;
-            }
-
-            // OTP verified — upload avatar
-            const formData = new FormData();
-            formData.append('avatar', pendingAvatarFile);
-            const res = await fetch('/api/account/avatar', {
-                method: 'POST',
-                body: formData,
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setProfile(prev => prev ? { ...prev, image: data.url } : prev);
-                setAvatarKey(prev => prev + 1);
-                setAvatarOtpDialogOpen(false);
-                // Refresh next-auth session so sidebar avatar updates
-                await update();
-                setSuccessMessage(t('account.profilePage.avatarUpdated'));
-                setTimeout(() => setSuccessMessage(''), 5000);
-                setPendingAvatarFile(null);
-            } else {
-                setAvatarOtpError(t('account.profilePage.avatarUploadFailed'));
-            }
-        } catch {
-            setAvatarOtpError(t('account.profilePage.genericError'));
-        } finally {
-            setAvatarUploading(false);
-        }
-    };
-
-    const getGenderLabel = (g: string | undefined) => {
-        if (g === 'male') return t('account.profilePage.genderMale');
-        if (g === 'female') return t('account.profilePage.genderFemale');
-        if (g === 'other') {
-            const other = form.getValues('otherGender');
-            return other || t('account.profilePage.genderOther');
-        }
-        return '';
-    };
-
-
+    const {
+        session, status, t, locale,
+        profile, loading, isEditing, setIsEditing, saving,
+        successMessage, errorMessage,
+        form, isDirty, onSubmit, handleCancel,
+        profileOtpDialogOpen, setProfileOtpDialogOpen,
+        profileOtp, setProfileOtp,
+        profileOtpSending, profileOtpError, setProfileOtpError,
+        handleProfileOtpVerify,
+        avatarInputRef, avatarUploading, avatarCropSrc, avatarCropOpen,
+        setAvatarCropOpen, avatarKey, avatarOtpSending,
+        handleAvatarSelect, handleCropConfirm,
+        avatarOtpDialogOpen, setAvatarOtpDialogOpen,
+        avatarOtp, setAvatarOtp,
+        avatarOtpError, handleAvatarOtpVerify,
+        setPendingAvatarFile, setAvatarOtpError,
+        getJoinedText, getGenderLabel,
+    } = useProfilePage();
 
     if (loading || status === 'loading') {
         return (
@@ -501,11 +85,14 @@ export default function ProfilePage() {
                                             )}
                                         >
                                             {profile?.image ? (
-                                                <img
+                                                <Image
                                                     key={avatarKey}
                                                     src={`${profile.image}${profile.image.includes('?') ? '&' : '?'}v=${avatarKey}`}
                                                     alt="Avatar"
+                                                    width={72}
+                                                    height={72}
                                                     className="w-full h-full object-cover"
+                                                    unoptimized
                                                 />
                                             ) : (
                                                 <div className="w-full h-full bg-[var(--brand-color)] flex items-center justify-center text-2xl font-bold text-black/90">
@@ -798,65 +385,21 @@ export default function ProfilePage() {
 
 
             {/* ── Profile Update OTP Dialog ── */}
-            <Dialog open={profileOtpDialogOpen} onOpenChange={(open) => {
-                setProfileOtpDialogOpen(open);
-                if (!open) { setProfileOtp(''); setProfileOtpError(''); }
-            }}>
-                <DialogContent className="sm:max-w-md bg-background border-border">
-                    <DialogHeader>
-                        <DialogTitle className="text-[18px] font-semibold">
-                            {t('account.profilePage.otpTitle')}
-                        </DialogTitle>
-                        <DialogDescription className="text-[14px] text-muted-foreground">
-                            {t('account.profilePage.otpDescription')} <span className="font-semibold text-foreground">{profile?.email}</span>
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    <div className="space-y-4 pt-2">
-                        <div className="flex justify-center">
-                            <InputOTP
-                                maxLength={6}
-                                value={profileOtp}
-                                onChange={setProfileOtp}
-                            >
-                                <InputOTPGroup>
-                                    {[0, 1, 2, 3, 4, 5].map(i => (
-                                        <InputOTPSlot
-                                            key={i}
-                                            index={i}
-                                            className="w-11 h-12 text-lg font-semibold border-input"
-                                        />
-                                    ))}
-                                </InputOTPGroup>
-                            </InputOTP>
-                        </div>
-
-                        {profileOtpError && (
-                            <p className="text-sm text-red-500 font-medium text-center">{profileOtpError}</p>
-                        )}
-
-                        <div className="flex gap-3 justify-end pt-1">
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                onClick={() => { setProfileOtpDialogOpen(false); setProfileOtp(''); setProfileOtpError(''); }}
-                                className="text-muted-foreground"
-                            >
-                                {t('account.profilePage.cancelButton')}
-                            </Button>
-                            <Button
-                                type="button"
-                                disabled={saving}
-                                onClick={handleProfileOtpVerify}
-                                className="font-semibold bg-[var(--brand-color)] text-black/90 border border-[var(--brand-color)] hover:bg-[var(--brand-color)]/90"
-                            >
-                                {saving && <Loader2 className="size-4 animate-spin mr-2" />}
-                                {t('account.profilePage.confirmButton')}
-                            </Button>
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
+            <OtpVerificationDialog
+                open={profileOtpDialogOpen}
+                onOpenChange={(open) => {
+                    setProfileOtpDialogOpen(open);
+                    if (!open) { setProfileOtp(''); setProfileOtpError(''); }
+                }}
+                title={t('account.profilePage.otpTitle')}
+                email={profile?.email || ''}
+                otp={profileOtp}
+                onOtpChange={setProfileOtp}
+                error={profileOtpError}
+                loading={saving}
+                onVerify={handleProfileOtpVerify}
+                onCancel={() => { setProfileOtpDialogOpen(false); setProfileOtp(''); setProfileOtpError(''); }}
+            />
 
             {/* ── Avatar Crop Dialog ── */}
             <AvatarCropDialog
@@ -867,65 +410,21 @@ export default function ProfilePage() {
             />
 
             {/* ── Avatar OTP Verification Dialog ── */}
-            <Dialog open={avatarOtpDialogOpen} onOpenChange={(open) => {
-                setAvatarOtpDialogOpen(open);
-                if (!open) { setAvatarOtp(''); setAvatarOtpError(''); setPendingAvatarFile(null); }
-            }}>
-                <DialogContent className="sm:max-w-md bg-background border-border">
-                    <DialogHeader>
-                        <DialogTitle className="text-[18px] font-semibold">
-                            {t('account.profilePage.otpAvatarTitle')}
-                        </DialogTitle>
-                        <DialogDescription className="text-[14px] text-muted-foreground">
-                            {t('account.profilePage.otpDescription')} <span className="font-semibold text-foreground">{profile?.email}</span>
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    <div className="space-y-4 pt-2">
-                        <div className="flex justify-center">
-                            <InputOTP
-                                maxLength={6}
-                                value={avatarOtp}
-                                onChange={setAvatarOtp}
-                            >
-                                <InputOTPGroup>
-                                    {[0, 1, 2, 3, 4, 5].map(i => (
-                                        <InputOTPSlot
-                                            key={i}
-                                            index={i}
-                                            className="w-11 h-12 text-lg font-semibold border-input"
-                                        />
-                                    ))}
-                                </InputOTPGroup>
-                            </InputOTP>
-                        </div>
-
-                        {avatarOtpError && (
-                            <p className="text-sm text-red-500 font-medium text-center">{avatarOtpError}</p>
-                        )}
-
-                        <div className="flex gap-3 justify-end pt-1">
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                onClick={() => { setAvatarOtpDialogOpen(false); setAvatarOtp(''); setAvatarOtpError(''); setPendingAvatarFile(null); }}
-                                className="text-muted-foreground"
-                            >
-                                {t('account.profilePage.cancelButton')}
-                            </Button>
-                            <Button
-                                type="button"
-                                disabled={avatarUploading}
-                                onClick={handleAvatarOtpVerify}
-                                className="font-semibold bg-[var(--brand-color)] text-black/90 border border-[var(--brand-color)] hover:bg-[var(--brand-color)]/90"
-                            >
-                                {avatarUploading && <Loader2 className="size-4 animate-spin mr-2" />}
-                                {t('account.profilePage.confirmButton')}
-                            </Button>
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
+            <OtpVerificationDialog
+                open={avatarOtpDialogOpen}
+                onOpenChange={(open) => {
+                    setAvatarOtpDialogOpen(open);
+                    if (!open) { setAvatarOtp(''); setAvatarOtpError(''); setPendingAvatarFile(null); }
+                }}
+                title={t('account.profilePage.otpAvatarTitle')}
+                email={profile?.email || ''}
+                otp={avatarOtp}
+                onOtpChange={setAvatarOtp}
+                error={avatarOtpError}
+                loading={avatarUploading}
+                onVerify={handleAvatarOtpVerify}
+                onCancel={() => { setAvatarOtpDialogOpen(false); setAvatarOtp(''); setAvatarOtpError(''); setPendingAvatarFile(null); }}
+            />
         </div>
     );
 }

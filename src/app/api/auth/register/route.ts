@@ -6,36 +6,36 @@ import { eq } from 'drizzle-orm';
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
 import { logAuditEvent } from '@/lib/audit-logger';
 import { logger, sendToLogtail, logApiEvent } from '@/lib/logger';
+import { z } from 'zod';
+
+const registerSchema = z.object({
+    email: z.string().email('Invalid email address'),
+    password: z
+        .string()
+        .min(8, 'Password must be at least 8 characters')
+        .regex(/[a-z]/, 'Must contain a lowercase letter')
+        .regex(/[A-Z]/, 'Must contain an uppercase letter')
+        .regex(/\d/, 'Must contain a number')
+        .regex(/[^A-Za-z0-9]/, 'Must contain a special character'),
+    name: z.string().min(1, 'Name is required').max(100),
+    gender: z.string().min(1, 'Gender is required'),
+    dateOfBirth: z.string().nullable().optional(),
+    phoneNumber: z.string().max(20).nullable().optional(),
+});
 
 export async function POST(request: NextRequest) {
     const rateLimitResponse = checkAuthRateLimit(request, 'register');
     if (rateLimitResponse) return rateLimitResponse;
 
     try {
-        const { email, password, name, gender, dateOfBirth, phoneNumber } =
-            await request.json();
-
-        if (!email || !password) {
+        const parsed = registerSchema.safeParse(await request.json());
+        if (!parsed.success) {
             return NextResponse.json(
-                { error: 'Email and password are required' },
+                { error: parsed.error.issues.map(i => i.message).join(', ') },
                 { status: 400 }
             );
         }
-
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
-        if (!passwordRegex.test(password)) {
-            return NextResponse.json(
-                { error: 'Password must be at least 8 characters with uppercase, lowercase, number, and special character' },
-                { status: 400 }
-            );
-        }
-
-        if (!name || !gender) {
-            return NextResponse.json(
-                { error: 'Name, gender and date of birth are required' },
-                { status: 400 }
-            );
-        }
+        const { email, password, name, gender, dateOfBirth, phoneNumber } = parsed.data;
 
         const [existingUser] = await db
             .select()

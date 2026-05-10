@@ -1,6 +1,7 @@
 import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import { pgTable, varchar, text, timestamp } from 'drizzle-orm/pg-core';
+import { env } from '@/lib/env';
 
 // ── Admin brand_settings schema (read-only mirror) ──
 export const brandSettings = pgTable('brand_settings', {
@@ -17,7 +18,7 @@ let _db: NodePgDatabase<typeof adminSchema> | null = null;
 
 function getAdminDb() {
     if (!_db) {
-        const url = process.env.ADMIN_DATABASE_URL;
+        const url = env.ADMIN_DATABASE_URL;
         if (!url) {
             throw new Error(
                 'ADMIN_DATABASE_URL is not set. ' +

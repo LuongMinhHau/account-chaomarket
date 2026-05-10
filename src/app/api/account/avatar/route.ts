@@ -6,6 +6,7 @@ import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { uploadAvatar } from '@/services/storage/upload-avatar';
 import { logger, sendToLogtail, logApiEvent } from '@/lib/logger';
+import { checkRateLimit } from '@/lib/rate-limiter';
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -13,6 +14,10 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
         return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (!checkRateLimit(`avatar:${session.user.id}`, 3, 60_000)) {
+        return NextResponse.json({ message: 'Too many requests' }, { status: 429 });
     }
 
     try {

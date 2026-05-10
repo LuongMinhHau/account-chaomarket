@@ -1,13 +1,14 @@
 import { PayOS } from '@payos/node';
+import { env } from '@/lib/env';
 
 let _payos: PayOS | null = null;
 
 function getPayOS(): PayOS {
     if (!_payos) {
         _payos = new PayOS({
-            clientId: process.env.PAYOS_CLIENT_ID!,
-            apiKey: process.env.PAYOS_API_KEY!,
-            checksumKey: process.env.PAYOS_CHECKSUM_KEY!,
+            clientId: env.PAYOS_CLIENT_ID,
+            apiKey: env.PAYOS_API_KEY,
+            checksumKey: env.PAYOS_CHECKSUM_KEY,
         });
     }
     return _payos;

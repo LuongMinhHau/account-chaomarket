@@ -324,6 +324,7 @@ function LoginPage() {
                     setError(t('auth.oauth.unknownError'));
             }
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
     return (

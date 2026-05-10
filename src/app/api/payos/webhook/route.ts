@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PayOS, Webhooks } from '@payos/node';
+import { Webhooks } from '@payos/node';
+import payos from '@/lib/payos';
 import { db } from '@/lib/db';
 import { orders, transactions } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { logger } from '@/lib/logger';
 
 /**
  * POST /api/payos/webhook
@@ -24,33 +26,28 @@ export async function POST(req: NextRequest) {
         }
 
         // Verify webhook signature using PayOS checksumKey
-        const payosClient = new PayOS({
-            clientId: process.env.PAYOS_CLIENT_ID!,
-            apiKey: process.env.PAYOS_API_KEY!,
-            checksumKey: process.env.PAYOS_CHECKSUM_KEY!,
-        });
-
-        const webhooks = new Webhooks(payosClient);
+        const webhooks = new Webhooks(payos);
         let webhookData;
         try {
             webhookData = await webhooks.verify(body);
-        } catch {
-            console.error('[PayOS Webhook] Invalid signature');
+        } catch (err) {
+            logger.error({ err }, '[PayOS Webhook] Invalid signature');
             return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
         }
 
-        const orderCode = String(webhookData.orderCode);
+        // Adapter: PayOS field → internal naming
+        const transactionCode = String(webhookData.orderCode);
         const isSuccess = body.code === '00' || body.success;
 
         // Find transaction by gateway ID
         const [txn] = await db
             .select({ id: transactions.id, orderId: transactions.orderId })
             .from(transactions)
-            .where(eq(transactions.gatewayTransactionId, orderCode))
+            .where(eq(transactions.gatewayTransactionId, transactionCode))
             .limit(1);
 
         if (!txn) {
-            console.warn(`[PayOS Webhook] No transaction found for orderCode: ${orderCode}`);
+            logger.warn({ transactionCode }, '[PayOS Webhook] No transaction found');
             return NextResponse.json({ success: true }); // ACK to prevent retries
         }
 
@@ -68,7 +65,7 @@ export async function POST(req: NextRequest) {
                     .where(eq(orders.id, txn.orderId));
             }
 
-            console.log(`[PayOS Webhook] ✅ Payment COMPLETED for orderCode: ${orderCode}`);
+            logger.info({ transactionCode }, '[PayOS Webhook] Payment COMPLETED');
         } else {
             // ── Payment FAILED/CANCELLED ──
             await db
@@ -83,13 +80,13 @@ export async function POST(req: NextRequest) {
                     .where(eq(orders.id, txn.orderId));
             }
 
-            console.log(`[PayOS Webhook] ❌ Payment FAILED for orderCode: ${orderCode}`);
+            logger.info({ transactionCode }, '[PayOS Webhook] Payment FAILED');
         }
 
         // Always return 200 to acknowledge receipt
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error('[PayOS Webhook] Error:', error);
+        logger.error({ err: error }, '[PayOS Webhook] Error');
         // Return 200 even on error to prevent PayOS from retrying endlessly
         return NextResponse.json({ success: true });
     }

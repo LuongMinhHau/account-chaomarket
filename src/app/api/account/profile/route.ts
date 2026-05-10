@@ -5,6 +5,16 @@ import { db } from '@/lib/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { logger, sendToLogtail, logApiEvent } from '@/lib/logger';
+import { checkRateLimit } from '@/lib/rate-limiter';
+import { z } from 'zod';
+import { apiSuccess, apiRateLimited, apiInternalError, parseBody } from '@/lib/api-response';
+
+const profileUpdateSchema = z.object({
+    name: z.string().min(1).max(100).optional(),
+    phone: z.string().max(20).nullable().optional(),
+    gender: z.enum(['male', 'female', 'other']).nullable().optional(),
+    dateOfBirth: z.string().nullable().optional(),
+});
 
 export async function GET() {
     const session = await getServerSession(authOptions);
@@ -41,9 +51,15 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    try {
-        const { name, phone, gender, dateOfBirth } = await request.json();
+    if (!checkRateLimit(`profile:${session.user.id}`, 10, 60_000)) {
+        return apiRateLimited();
+    }
 
+    const parsed = await parseBody(request, profileUpdateSchema);
+    if (parsed.error) return parsed.error;
+    const { name, phone, gender, dateOfBirth } = parsed.data;
+
+    try {
         const updateData: Record<string, unknown> = {};
         if (name !== undefined) updateData.name = name;
         if (phone !== undefined) updateData.phone = phone;
@@ -58,10 +74,10 @@ export async function PUT(request: NextRequest) {
             .where(eq(users.id, session.user.id));
 
         logApiEvent('info', 'Profile updated', { userId: session.user.id, fields: Object.keys(updateData) });
-        return NextResponse.json({ message: 'Profile updated successfully' });
+        return apiSuccess({ message: 'Profile updated successfully' });
     } catch (error) {
         logger.error({ err: error, userId: session.user.id }, 'Profile update error');
         sendToLogtail('error', 'Profile update failed', { userId: session.user.id, error: String(error) });
-        return NextResponse.json({ message: 'Failed to update profile' }, { status: 500 });
+        return apiInternalError('Failed to update profile');
     }
 }

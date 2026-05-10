@@ -71,6 +71,7 @@ export default function DevicesPage() {
         if (status === 'authenticated') {
             fetchDevices();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [status]);
 
     const fetchDevices = async () => {

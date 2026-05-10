@@ -101,8 +101,8 @@ export function findNodePosition(props: {
             if (nodeAtPos) {
                 return { pos: nodePos!, node: nodeAtPos };
             }
-        } catch (error) {
-            console.error('Error checking node at position:', error);
+        } catch {
+            // Invalid position — return null
             return null;
         }
     }

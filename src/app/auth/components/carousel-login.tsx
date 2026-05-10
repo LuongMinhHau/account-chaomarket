@@ -19,6 +19,8 @@ import { sanitizeHtml } from '@/lib/sanitize';
 
 export default function CarouselLogin() {
     const plugin = React.useRef(Autoplay({ delay: 2000, playOnInit: true }));
+    const pluginInstance = plugin.current;
+    const plugins = React.useMemo(() => [pluginInstance], [pluginInstance]);
     const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
     const [currentIndex, setCurrentIndex] = useState(0);
     const { t } = useI18n();
@@ -28,6 +30,14 @@ export default function CarouselLogin() {
             carouselApi.scrollTo(index);
         }
     };
+
+    const handleMouseEnter = React.useCallback(() => {
+        pluginInstance.stop();
+    }, [pluginInstance]);
+
+    const handleMouseLeave = React.useCallback(() => {
+        pluginInstance.play();
+    }, [pluginInstance]);
 
     useEffect(() => {
         if (!carouselApi) return;
@@ -47,13 +57,11 @@ export default function CarouselLogin() {
 
     return (
         <Carousel
-            plugins={[plugin.current]}
+            plugins={plugins}
             setApi={setCarouselApi}
             className="w-full overflow-hidden h-full relative"
-            onMouseEnter={plugin.current.stop}
-            onMouseLeave={() => {
-                plugin.current.play();
-            }}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
         >
             <CarouselContent>
                 {loginThemes.map((theme, index) => (

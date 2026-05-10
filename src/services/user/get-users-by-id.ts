@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { eq } from 'drizzle-orm';
 import { UserViewResponse } from '@/types/user/response/view-response';
 import { users } from '@/db/schema';
+import { logger } from '@/lib/logger';
 
 export const getUsersById = async (
     id: string
@@ -31,7 +32,7 @@ export const getUsersById = async (
 
         return user;
     } catch (error) {
-        console.error('Failed to fetch user by ID:', error);
+        logger.error({ err: error, userId: id }, 'Failed to fetch user by ID');
         return null;
     }
 };

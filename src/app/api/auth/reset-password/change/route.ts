@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createHash } from 'crypto';
 import { db } from '@/lib/db';
 import { users, otpCodes } from '@/db/schema';
 import { eq, and, gt } from 'drizzle-orm';
@@ -12,10 +11,21 @@ import { getEmailLocale } from '@/lib/get-email-locale';
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
 import { logAuditEvent } from '@/lib/audit-logger';
 import { logger, sendToLogtail } from '@/lib/logger';
+import { z } from 'zod';
 
-function hashOTP(otp: string): string {
-    return createHash('sha256').update(otp).digest('hex');
-}
+const changePasswordSchema = z.object({
+    email: z.string().email(),
+    password: z
+        .string()
+        .min(8, 'Password must be at least 8 characters')
+        .regex(/[a-z]/, 'Must contain a lowercase letter')
+        .regex(/[A-Z]/, 'Must contain an uppercase letter')
+        .regex(/\d/, 'Must contain a number')
+        .regex(/[^A-Za-z0-9]/, 'Must contain a special character'),
+    otp: z.string().min(1),
+});
+
+import { hashOTP } from '@/lib/otp';
 
 export async function POST(request: NextRequest) {
     // Rate limit: 5 password change attempts per 15 minutes per IP
@@ -23,24 +33,14 @@ export async function POST(request: NextRequest) {
     if (rateLimitResponse) return rateLimitResponse;
 
     try {
-        const { email, password, otp } = await request.json();
-
-        if (!email || !password || !otp) {
+        const parsed = changePasswordSchema.safeParse(await request.json());
+        if (!parsed.success) {
             return NextResponse.json<BaseResponse>(
-                { message: 'Email, password, and OTP are required' },
+                { message: parsed.error.issues.map(i => i.message).join(', ') },
                 { status: 400 }
             );
         }
-
-        // Server-side password strength validation
-        // Must match register endpoint: uppercase, lowercase, digit, and any non-alphanumeric char
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
-        if (!passwordRegex.test(password)) {
-            return NextResponse.json<BaseResponse>(
-                { message: 'Password must be at least 8 characters with uppercase, lowercase, number, and special character' },
-                { status: 400 }
-            );
-        }
+        const { email, password, otp } = parsed.data;
 
         // Find user
         const [user] = await db

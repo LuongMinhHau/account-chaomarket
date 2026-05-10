@@ -7,6 +7,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/next-auth.config';
 import { users } from '@/db/schema';
 import { SessionUser } from '@/types/session-user';
+import { logger } from '@/lib/logger';
 
 export const updateUserAvatar = async (newUrl: string) => {
     // ✅ Validate input
@@ -38,7 +39,7 @@ export const updateUserAvatar = async (newUrl: string) => {
             data: { avatarUrl: updatedUser.image },
         };
     } catch (error) {
-        console.error('[updateUserAvatar] Error:', error);
+        logger.error({ err: error }, '[updateUserAvatar] Error');
         return {
             success: false,
             error: 'Failed to update avatar',

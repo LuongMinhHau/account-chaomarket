@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { randomInt, createHash } from 'crypto';
 import { db } from '@/lib/db';
 import { users, otpCodes } from '@/db/schema';
 import { eq } from 'drizzle-orm';
@@ -19,16 +18,12 @@ import { getEmailLocale } from '@/lib/get-email-locale';
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
 import { logAuditEvent } from '@/lib/audit-logger';
 import { logger, sendToLogtail } from '@/lib/logger';
+import { z } from 'zod';
+import { generateOTP, hashOTP } from '@/lib/otp';
 
-// Generate random 6-digit OTP using cryptographically secure randomness
-function generateOTP(): string {
-    return randomInt(100000, 1000000).toString();
-}
-
-// Hash OTP before storing
-function hashOTP(otp: string): string {
-    return createHash('sha256').update(otp).digest('hex');
-}
+const resetRequestSchema = z.object({
+    email: z.string().email('Invalid email'),
+});
 
 // Response types
 export interface RequestResetPasswordData {
@@ -43,14 +38,14 @@ export async function POST(request: NextRequest) {
     if (rateLimitResponse) return rateLimitResponse;
 
     try {
-        const { email } = await request.json();
-
-        if (!email) {
+        const parsed = resetRequestSchema.safeParse(await request.json());
+        if (!parsed.success) {
             return NextResponse.json<BaseResponse>(
                 { message: 'Email is required' },
                 { status: 400 }
             );
         }
+        const { email } = parsed.data;
 
         // Find user
         const [user] = await db

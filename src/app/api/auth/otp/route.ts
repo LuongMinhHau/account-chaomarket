@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { randomInt, createHash } from 'crypto';
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
 import { db } from '@/lib/db';
 import { users, otpCodes } from '@/db/schema';
@@ -12,16 +11,20 @@ import type { EmailLocale } from '@/lib/get-email-locale';
 import { getEmailLocale } from '@/lib/get-email-locale';
 import { logAuditEvent } from '@/lib/audit-logger';
 import { logger, sendToLogtail, logApiEvent } from '@/lib/logger';
+import { z } from 'zod';
+import { generateOTP, hashOTP } from '@/lib/otp';
 
-// Generate random 6-digit OTP using cryptographically secure randomness
-function generateOTP(): string {
-    return randomInt(100000, 1000000).toString();
-}
+const otpSendSchema = z.object({
+    email: z.string().email(),
+    type: z.string().default('email'),
+    locale: z.string().optional(),
+    purpose: z.string().default('otpVerify'),
+});
 
-// Hash OTP before storing (one-way, prevents reading OTP from DB leaks)
-function hashOTP(otp: string): string {
-    return createHash('sha256').update(otp).digest('hex');
-}
+const otpVerifySchema = z.object({
+    email: z.string().email(),
+    otp: z.string().min(1),
+});
 
 // Parse User-Agent string to extract browser and OS
 function parseUserAgent(ua: string): { browser: string; os: string } {
@@ -64,14 +67,14 @@ export async function POST(request: NextRequest) {
     if (rateLimitResponse) return rateLimitResponse;
 
     try {
-        const { email, type = 'email', locale: requestLocale, purpose = 'otpVerify' } = await request.json();
-
-        if (!email) {
+        const parsed = otpSendSchema.safeParse(await request.json());
+        if (!parsed.success) {
             return NextResponse.json(
-                { error: 'Email is required' },
+                { error: 'Valid email is required' },
                 { status: 400 }
             );
         }
+        const { email, type, locale: requestLocale, purpose } = parsed.data;
 
         // Find user
         const [user] = await db
@@ -157,14 +160,14 @@ export async function PUT(request: NextRequest) {
     if (rateLimitResponse) return rateLimitResponse;
 
     try {
-        const { email, otp } = await request.json();
-
-        if (!email || !otp) {
+        const parsed = otpVerifySchema.safeParse(await request.json());
+        if (!parsed.success) {
             return NextResponse.json(
                 { error: 'Email and OTP are required' },
                 { status: 400 }
             );
         }
+        const { email, otp } = parsed.data;
 
         // Find user
         const [user] = await db

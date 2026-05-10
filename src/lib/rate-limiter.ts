@@ -39,3 +39,23 @@ export function getRateLimitInfo(
         resetIn,
     };
 }
+
+// ── Periodic Cleanup (prevent memory leak) ──
+// Prune expired entries every 5 minutes to keep Map bounded.
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
+const MAX_WINDOW_MS = 15 * 60 * 1000; // Longest window across all rate limit configs
+
+if (typeof setInterval !== 'undefined') {
+    setInterval(() => {
+        const now = Date.now();
+        for (const [key, timestamps] of requestLog) {
+            const valid = timestamps.filter((t) => now - t < MAX_WINDOW_MS);
+            if (valid.length === 0) {
+                requestLog.delete(key);
+            } else {
+                requestLog.set(key, valid);
+            }
+        }
+    }, CLEANUP_INTERVAL_MS);
+}
+

@@ -94,13 +94,16 @@ export default function SecurityPage() {
     useEffect(() => {
         if (status === 'unauthenticated') { router.push('/auth/login?callbackUrl=/security'); return; }
         if (status === 'authenticated') { fetchAuditLogs(); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [status]);
 
     const fetchAuditLogs = async () => {
         try {
             const res = await fetch('/api/account/security/audit-logs');
             if (res.ok) { const data = await res.json(); setAuditLogs(data.logs || []); }
-        } catch {}
+        } catch {
+            // Network error — audit logs remain empty, non-critical
+        }
     };
 
     const onSubmit = async (data: PasswordFormData) => {

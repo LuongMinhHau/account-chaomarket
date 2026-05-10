@@ -621,8 +621,8 @@ export const en: TranslationsStructure = {
         changePassword: 'Change Password',
         twoFactor: '2-Step Verification',
         notifications: 'Notifications',
-        orders: 'Orders & Subscriptions',
-        orderHistory: 'Order History',
+        orders: 'Transactions & Subscriptions',
+        orderHistory: 'Transaction History',
         subscriptions: 'Subscriptions',
         legal: 'Legal & Compliance',
         ecosystem: 'Chào Ecosystem',
@@ -642,7 +642,7 @@ export const en: TranslationsStructure = {
             security: 'Security',
             system: 'System',
             account: 'Account',
-            order: 'Order',
+            order: 'Transaction',
         },
         filter: {
             all: 'All',
@@ -855,7 +855,7 @@ export const en: TranslationsStructure = {
                         '<br/>• <strong>Duplicate payment:</strong> If you are charged more than once for the same product, you are eligible for a full refund of the duplicate charge.' +
                         '<br/>• <strong>Product not delivered:</strong> If the digital product (license key, download link, or course access) was not delivered to your account after payment, you are eligible for a full refund.' +
                         '<br/>• <strong>Critical technical issue:</strong> If a purchased product has a critical defect that prevents it from functioning as described and our support team is unable to resolve the issue.' +
-                        '<br/><br/><strong>How to request a refund:</strong> Contact us at <a href="mailto:info@chaomarket.com">info@chaomarket.com</a> within <strong>7 days</strong> of purchase with your order code and a description of the issue.',
+                        '<br/><br/><strong>How to request a refund:</strong> Contact us at <a href="mailto:info@chaomarket.com">info@chaomarket.com</a> within <strong>7 days</strong> of purchase with your transaction code and a description of the issue.',
                 },
                 {
                     title: '4. Refund Timeline & Method',
@@ -1008,7 +1008,7 @@ export const en: TranslationsStructure = {
     account: {
         profile: 'Profile',
         notification: 'Notifications',
-        orderHistory: 'Order History',
+        orderHistory: 'Transaction History',
         subscriptions: 'Subscriptions',
         security: 'Security',
         legalCompliance: 'Terms',
@@ -1290,12 +1290,12 @@ export const en: TranslationsStructure = {
             'A tool to estimate the time and effort required to recover from a loss.',
     },
     orders: {
-        title: 'Order History',
+        title: 'Transaction History',
         description: 'Track all your transactions and purchases',
-        searchPlaceholder: 'Search by order code, payment method...',
-        results: 'orders',
-        noResults: 'No matching orders found.',
-        fetchError: 'Failed to load order history',
+        searchPlaceholder: 'Search by transaction code, payment method...',
+        results: 'transactions',
+        noResults: 'No matching transactions found.',
+        fetchError: 'Failed to load transaction history',
         status: {
             completed: 'Completed',
             pending: 'Pending',
@@ -1307,7 +1307,7 @@ export const en: TranslationsStructure = {
             starred: 'Starred',
         },
         col: {
-            orderCode: 'Order Code',
+            orderCode: 'Transaction Code',
             payment: 'Payment Method',
             amount: 'Amount',
             currency: 'Currency',
@@ -1324,8 +1324,8 @@ export const en: TranslationsStructure = {
             last30: '30 days',
         },
         empty: {
-            title: 'No orders yet',
-            description: 'Your orders will appear here.',
+            title: 'No transactions yet',
+            description: 'Your transactions will appear here.',
         },
     },
     security: {

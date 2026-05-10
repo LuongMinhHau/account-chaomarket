@@ -1,10 +1,12 @@
+import { env } from '@/lib/env';
+
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
     name: 'Chào Account',
-    url: process.env.NEXTAUTH_URL || 'https://account.chaomarket.com',
+    url: env.NEXTAUTH_URL,
     /** Centralized auth service URL. Production → account.chaomarket.com; Dev → local */
-    accountsUrl: process.env.NODE_ENV === 'production'
+    accountsUrl: env.NODE_ENV === 'production'
         ? 'https://account.chaomarket.com'
         : '',
     description:

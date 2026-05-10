@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { userDevices } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { logger } from '@/lib/logger';
 
 interface DeviceInfo {
     userId: string;
@@ -114,6 +115,6 @@ export async function trackDevice({ userId, userAgent, ip }: DeviceInfo) {
         }
     } catch (error) {
         // Non-blocking — don't crash login
-        console.error('[trackDevice] Error:', error);
+        logger.warn({ err: error }, '[trackDevice] Non-blocking error');
     }
 }

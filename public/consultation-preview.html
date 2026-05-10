@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consultation Preview — Chào Market</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--brand:#FFE400;--bg:#f8f8f6;--fg:#1a1a1a;--grey:#666;--grey-lt:#999;--border:rgba(0,0,0,0.1);--subtle:rgba(0,0,0,0.02);--card-bg:#fff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Source Sans 3',-apple-system,sans-serif;background:var(--bg);color:var(--fg);min-height:100vh}
+body.dark{--bg:#0a0a0a;--fg:#fff;--grey:#999;--grey-lt:#666;--border:rgba(255,255,255,0.1);--subtle:rgba(255,255,255,0.03);--card-bg:rgba(255,255,255,0.05)}
+
+/* Logo — fixed top-left, exact match purchase layout.tsx */
+.logo{position:fixed;top:16px;left:16px;z-index:50;display:flex;align-items:center;gap:8px;text-decoration:none}
+@media(min-width:768px){.logo{top:24px;left:32px}}
+.logo-icon{width:40px;height:40px;border-radius:10px;border:1px solid var(--border);background:var(--brand);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#1a1a1a;flex-shrink:0;transition:transform .3s}
+.logo:hover .logo-icon{transform:scale(1.05)}
+.logo-name{font-size:18px;font-weight:600;color:var(--fg);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.dark .logo-name{color:var(--brand)}
+.logo-slogan{font-size:14px;font-weight:600;color:var(--fg);opacity:0.9;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.dark .logo-slogan{color:rgba(255,255,255,0.9)}
+@media(max-width:767px){.logo-text-wrap{display:none}}
+
+/* Toolbar — fixed top-right, exact match auth-toolbar.tsx */
+.toolbar{position:fixed;top:16px;right:16px;z-index:50;display:flex;align-items:center;gap:8px}
+@media(min-width:768px){.toolbar{top:24px;right:32px}}
+.tool-btn{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.1);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);font-size:12px;font-weight:500;color:rgba(0,0,0,0.8);cursor:pointer;transition:all .3s ease-in-out;font-family:inherit;box-shadow:0 10px 15px rgba(0,0,0,0.05)}
+.tool-btn:hover{background:rgba(255,255,255,0.2);color:#000}
+.tool-btn svg{width:16px;height:16px}
+body.dark .tool-btn{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);box-shadow:0 10px 15px rgba(0,0,0,0.2)}
+body.dark .tool-btn:hover{background:rgba(255,255,255,0.1);color:#fff}
+
+/* Quick chat — exact match ContactButton: fixed bottom-2.5 right-2.5, size-12, bounce */
+.quick-chat{position:fixed;bottom:10px;right:10px;z-index:50;width:48px;height:48px;border-radius:50%;background:var(--brand);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .3s ease-in-out;animation:bounce 2s infinite}
+.quick-chat:hover{background:#f5da00}
+.quick-chat svg{width:22px;height:22px;color:#1a1a1a;stroke-width:2.5}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+/* Tab nav */
+.tab-nav{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:60;display:flex;gap:6px;padding:6px;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.1)}
+.tab-btn{padding:8px 16px;border-radius:8px;border:none;background:transparent;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--grey);font-family:inherit}
+.tab-btn.active{background:var(--brand);color:#1a1a1a}
+
+/* Main content — same as purchase layout */
+.main-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px 16px 80px}
+.main-inner{width:100%;max-width:896px;padding:40px 0}
+.page{display:none}.page.active{display:block}
+
+/* Section cards — same border style as purchase */
+.section-card{border:1px solid var(--border);border-radius:12px;background:var(--subtle);overflow:hidden;margin-bottom:16px}
+.section-header{padding:12px 20px;border-bottom:1px solid rgba(0,0,0,0.05);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--grey-lt)}
+body.dark .section-header{border-color:rgba(255,255,255,0.05)}
+.section-body{padding:20px}
+.info-row{display:flex;align-items:center;justify-content:space-between;font-size:16px;padding:4px 0}
+.info-row+.info-row{margin-top:8px}
+.info-label{color:var(--grey)}
+.info-value{font-weight:600}
+.info-divider{border-top:1px solid rgba(0,0,0,0.05);margin:12px 0;padding-top:12px}
+body.dark .info-divider{border-color:rgba(255,255,255,0.05)}
+
+/* Form fields */
+.form-group{margin-bottom:16px}
+.form-label{font-size:14px;font-weight:600;margin-bottom:6px;display:block}
+.form-label span{font-weight:400;color:var(--grey-lt)}
+.form-input,.form-textarea{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:8px;font-size:15px;font-family:inherit;background:var(--card-bg);color:var(--fg);outline:none;transition:border-color .2s}
+.form-input:focus,.form-textarea:focus{border-color:rgba(0,0,0,0.3)}
+body.dark .form-input:focus,body.dark .form-textarea:focus{border-color:rgba(255,255,255,0.3)}
+.form-input::placeholder,.form-textarea::placeholder{color:var(--grey-lt)}
+.form-textarea{min-height:88px;resize:vertical}
+
+/* CTA — same as purchase */
+.cta{width:100%;height:48px;border:1px solid var(--brand);border-radius:10px;background:var(--brand);color:#1a1a1a;font-size:16px;font-weight:700;cursor:pointer;transition:all .3s;font-family:inherit;letter-spacing:.2px}
+.cta:hover{transform:scale(1.02);background:#f5da00}
+body.dark .cta{border-color:#1a1a1a}
+.back-link{display:block;text-align:center;margin-top:14px;font-size:16px;font-weight:600;color:var(--grey);cursor:pointer;transition:color .2s}
+.back-link:hover{color:var(--fg)}
+
+/* Header text */
+.page-header{text-align:center;margin-bottom:32px}
+.page-header h1{font-size:26px;font-weight:700;letter-spacing:-.3px;margin-bottom:6px}
+body.dark .page-header h1{color:var(--brand)}
+.page-header p{font-size:16px;color:var(--grey);line-height:1.5}
+
+/* 2-col layout — same as purchase */
+.two-col{display:flex;flex-direction:column;gap:24px}
+@media(min-width:768px){.two-col{flex-direction:row}.col-left{width:38%}.col-right{width:62%}}
+
+/* Solution chips in left panel */
+.solution-chip{display:flex;align-items:center;gap:10px;padding:12px 16px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;background:var(--card-bg);font-size:15px;font-weight:600}
+.chip-check{width:20px;height:20px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.chip-check svg{width:12px;height:12px}
+
+/* Status dot */
+.status{display:flex;align-items:center;gap:8px;margin-top:8px}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--fg);animation:pulse 1.5s infinite}
+body.dark .pulse{background:var(--brand)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Confirmation */
+.confirm-wrap{max-width:480px;margin:0 auto;text-align:center}
+.success-icon{width:72px;height:72px;margin:0 auto 24px;color:var(--brand)}
+.error-icon{width:72px;height:72px;margin:0 auto 24px;color:#ef4444;opacity:.8}
+.confirm-card{border:1px solid var(--border);border-radius:12px;background:var(--subtle);overflow:hidden;margin:24px auto;max-width:380px;text-align:left}
+.confirm-row{display:flex;align-items:center;justify-content:space-between;padding:16px 20px}
+.confirm-row+.confirm-row{border-top:1px solid rgba(0,0,0,0.05)}
+body.dark .confirm-row+.confirm-row{border-color:rgba(255,255,255,0.05)}
+.c-label{font-size:13px;color:var(--grey-lt);font-weight:500}
+.c-value{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
+.c-value.code{font-size:20px;font-weight:700;letter-spacing:.5px}
+.copy-btn{width:32px;height:32px;border:1px solid var(--border);border-radius:8px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.copy-btn:hover{background:rgba(0,0,0,0.05)}
+body.dark .copy-btn:hover{background:rgba(255,255,255,0.05)}
+.copy-btn svg{width:14px;height:14px;opacity:.5}
+.s-dot{width:8px;height:8px;border-radius:50%;background:#f59e0b}
+.sol-list{padding:14px 20px;border-top:1px solid rgba(0,0,0,0.05)}
+body.dark .sol-list{border-color:rgba(255,255,255,0.05)}
+.sol-tag{display:inline-block;padding:4px 12px;border-radius:6px;font-size:13px;font-weight:600;background:rgba(0,0,0,0.05);margin:0 4px 6px 0}
+body.dark .sol-tag{background:rgba(255,255,255,0.08)}
+
+/* Loading */
+.spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--brand);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 24px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- Logo — top-left (same as purchase layout.tsx) -->
+<a href="#" class="logo">
+    <div class="logo-icon">C</div>
+    <div class="logo-text-wrap">
+        <div class="logo-name">Chào Market</div>
+        <div class="logo-slogan">Trao Giá Trị Đến Bạn</div>
+    </div>
+</a>
+
+<!-- Toolbar — top-right (same as AuthToolbar) -->
+<div class="toolbar">
+    <button class="tool-btn" onclick="toggleLang()" id="lang-btn">🇻🇳 Tiếng Việt</button>
+    <button class="tool-btn" onclick="toggleTheme()" id="theme-btn">
+        <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+    </button>
+</div>
+
+<!-- Quick Chat — bottom-right (same as ContactButtonServer) -->
+<div class="quick-chat" title="Hỗ trợ nhanh">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8.8 20v-4.1l1.9.2a2.3 2.3 0 0 0 2.164-2.1V8.3A5.37 5.37 0 0 0 2 8.2c0 2.1.8 4.1 2.2 5.4.5.4.8 1 .7 1.6L4.4 17"/><path d="M19.8 17.8a7.5 7.5 0 0 0-2.6-12"/><path d="M17 15.2a3.5 3.5 0 0 0-1-6"/></svg>
+</div>
+
+<div class="main-wrap">
+<div class="main-inner">
+
+<!-- ═══ PAGE 1: GATEWAY (mirrors purchase checkout layout) ═══ -->
+<div class="page active" id="p-gateway">
+    <div class="page-header">
+        <h1 id="t-title">Đăng Ký Tư Vấn</h1>
+        <p id="t-subtitle">Xác nhận thông tin và thời gian mong muốn để đặt lịch tư vấn</p>
+    </div>
+    <div class="two-col">
+        <!-- LEFT: Solution summary (mirrors QR panel) -->
+        <div class="col-left">
+            <div class="section-card">
+                <div class="section-header" id="t-solutions-header">Gói sản phẩm đã chọn</div>
+                <div class="section-body">
+                    <div class="solution-chip">
+                        <div class="chip-check"><svg viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                        <span>Giải pháp quản lý rủi ro tài chính</span>
+                    </div>
+                    <div class="solution-chip">
+                        <div class="chip-check"><svg viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                        <span>Tư vấn đầu tư cá nhân hóa</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- RIGHT: Booking form (mirrors Bank Transfer info panel) -->
+        <div class="col-right">
+            <!-- Consultation Info Card -->
+            <div class="section-card">
+                <div class="section-header" id="t-info-header">Thông tin tư vấn</div>
+                <div class="section-body">
+                    <div class="info-row">
+                        <span class="info-label" id="t-type-label">Loại yêu cầu</span>
+                        <span class="info-value" id="t-type-value">Tư vấn miễn phí</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label" id="t-source-label">Nguồn</span>
+                        <span class="info-value">Chào Help</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label" id="t-count-label">Số gói đã chọn</span>
+                        <span class="info-value">2</span>
+                    </div>
+                    <div class="info-divider"></div>
+                    <div class="info-row">
+                        <span class="info-label" id="t-code-label">Mã tư vấn</span>
+                        <span class="info-value" style="letter-spacing:.5px">#8472913</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Booking Form Card -->
+            <div class="section-card">
+                <div class="section-header" id="t-schedule-header">Lịch hẹn</div>
+                <div class="section-body">
+                    <div class="form-group">
+                        <label class="form-label" id="t-date-label">Thời gian liên hệ mong muốn</label>
+                        <input type="datetime-local" class="form-input" value="2026-05-15T10:00">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0">
+                        <label class="form-label"><span id="t-note-label">Ghi chú</span> <span>(tùy chọn)</span></label>
+                        <textarea class="form-textarea" placeholder="Mô tả nhu cầu tư vấn của bạn..." id="t-note-placeholder"></textarea>
+                    </div>
+                </div>
+            </div>
+            <!-- CTA + Status -->
+            <button class="cta" id="t-cta" onclick="showTab('loading');setTimeout(()=>showTab('confirm'),1500)">Xác Nhận Đặt Lịch</button>
+            <div class="status">
+                <div class="pulse"></div>
+                <span style="font-size:16px" id="t-ready">Sẵn sàng gửi yêu cầu</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ PAGE 2: LOADING ═══ -->
+<div class="page" id="p-loading">
+    <div style="text-align:center;padding-top:60px">
+        <div class="spinner"></div>
+        <p style="font-size:16px;font-weight:600;margin-bottom:4px" id="t-loading">Đang Xử Lý...</p>
+        <p style="font-size:14px;color:var(--grey)" id="t-wait">Vui lòng chờ trong giây lát.</p>
+    </div>
+</div>
+
+<!-- ═══ PAGE 3: CONFIRMATION (mirrors checkout/confirmation) ═══ -->
+<div class="page" id="p-confirm">
+    <div class="confirm-wrap">
+        <div class="success-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+        <h1 style="font-size:26px;font-weight:700;margin-bottom:8px" id="t-success">Đặt Lịch Thành Công!</h1>
+        <p style="font-size:16px;color:var(--grey);margin-bottom:8px;line-height:1.5" id="t-success-sub">Đội ngũ Chào Market sẽ liên hệ với bạn trong thời gian sớm nhất.</p>
+        <div class="confirm-card">
+            <div class="confirm-row">
+                <div><div class="c-label" id="t-c-code">Mã tư vấn</div><div class="c-value code">#8472913</div></div>
+                <button class="copy-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
+            </div>
+            <div class="confirm-row">
+                <div class="c-label" id="t-c-status">Trạng thái</div>
+                <div class="c-value"><span class="s-dot"></span> <span id="t-c-pending">Chờ xác nhận</span></div>
+            </div>
+            <div class="confirm-row">
+                <div class="c-label" id="t-c-source">Nguồn</div>
+                <div class="c-value" style="font-size:14px">Chào Help</div>
+            </div>
+            <div class="sol-list">
+                <div class="c-label" style="margin-bottom:8px" id="t-c-solutions">Gói sản phẩm</div>
+                <span class="sol-tag">Giải pháp quản lý rủi ro</span>
+                <span class="sol-tag">Tư vấn đầu tư cá nhân</span>
+            </div>
+        </div>
+        <button class="cta" style="max-width:380px;margin:0 auto" id="t-view-history">Xem Lịch Sử Giao Dịch</button>
+        <div class="back-link" id="t-back">← Quay lại</div>
+    </div>
+</div>
+
+<!-- ═══ PAGE 4: ERROR ═══ -->
+<div class="page" id="p-error">
+    <div class="confirm-wrap">
+        <div class="error-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+        <h1 style="font-size:22px;font-weight:700;margin-bottom:8px" id="t-err-title">Không Thể Đặt Lịch</h1>
+        <p style="font-size:16px;color:var(--grey);margin-bottom:24px;line-height:1.5" id="t-err-sub">Đã xảy ra lỗi khi xử lý yêu cầu. Vui lòng thử lại.</p>
+        <button class="cta" style="max-width:320px;margin:0 auto" onclick="showTab('gateway')" id="t-retry">Thử lại</button>
+        <div class="back-link">← Quay lại</div>
+    </div>
+</div>
+
+</div>
+</div>
+
+<!-- Tab nav — bottom center -->
+<div class="tab-nav">
+    <button class="tab-btn active" onclick="showTab('gateway')">Gateway</button>
+    <button class="tab-btn" onclick="showTab('loading')">Loading</button>
+    <button class="tab-btn" onclick="showTab('confirm')">Confirmation</button>
+    <button class="tab-btn" onclick="showTab('error')">Error</button>
+</div>
+
+<script>
+function showTab(id){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('p-'+id).classList.add('active');
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    event?.target?.classList?.add('active');
+}
+function toggleTheme(){
+    document.body.classList.toggle('dark');
+    const isDark=document.body.classList.contains('dark');
+    document.getElementById('icon-moon').style.display=isDark?'none':'block';
+    document.getElementById('icon-sun').style.display=isDark?'block':'none';
+}
+let lang='vi';
+function toggleLang(){
+    lang=lang==='vi'?'en':'vi';
+    document.getElementById('lang-btn').textContent=lang==='vi'?'🇻🇳 Tiếng Việt':'🇬🇧 English';
+    const t={
+        vi:{title:'Đăng Ký Tư Vấn',subtitle:'Xác nhận thông tin và thời gian mong muốn để đặt lịch tư vấn',solHeader:'Gói sản phẩm đã chọn',infoHeader:'Thông tin tư vấn',typeLabel:'Loại yêu cầu',typeValue:'Tư vấn miễn phí',sourceLabel:'Nguồn',countLabel:'Số gói đã chọn',codeLabel:'Mã tư vấn',schedHeader:'Lịch hẹn',dateLabel:'Thời gian liên hệ mong muốn',noteLabel:'Ghi chú',cta:'Xác Nhận Đặt Lịch',ready:'Sẵn sàng gửi yêu cầu',loading:'Đang Xử Lý...',wait:'Vui lòng chờ trong giây lát.',success:'Đặt Lịch Thành Công!',successSub:'Đội ngũ Chào Market sẽ liên hệ với bạn trong thời gian sớm nhất.',cCode:'Mã tư vấn',cStatus:'Trạng thái',cPending:'Chờ xác nhận',cSource:'Nguồn',cSolutions:'Gói sản phẩm',viewHistory:'Xem Lịch Sử Giao Dịch',back:'← Quay lại',errTitle:'Không Thể Đặt Lịch',errSub:'Đã xảy ra lỗi khi xử lý yêu cầu. Vui lòng thử lại.',retry:'Thử lại',slogan:'Trao Giá Trị Đến Bạn'},
+        en:{title:'Book Consultation',subtitle:'Confirm your details and preferred time to schedule a consultation',solHeader:'Selected solutions',infoHeader:'Consultation details',typeLabel:'Request type',typeValue:'Free consultation',sourceLabel:'Source',countLabel:'Solutions selected',codeLabel:'Consultation code',schedHeader:'Schedule',dateLabel:'Preferred contact time',noteLabel:'Notes',cta:'Confirm Booking',ready:'Ready to submit',loading:'Processing...',wait:'Please wait a moment.',success:'Booking Successful!',successSub:'Our Chào Market team will contact you as soon as possible.',cCode:'Consultation code',cStatus:'Status',cPending:'Pending',cSource:'Source',cSolutions:'Solutions',viewHistory:'View Transaction History',back:'← Go back',errTitle:'Booking Failed',errSub:'An error occurred. Please try again.',retry:'Try Again',slogan:'Delivering Value To You'}
+    }[lang];
+    const m=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
+    m('t-title',t.title);m('t-subtitle',t.subtitle);m('t-solutions-header',t.solHeader);m('t-info-header',t.infoHeader);m('t-type-label',t.typeLabel);m('t-type-value',t.typeValue);m('t-source-label',t.sourceLabel);m('t-count-label',t.countLabel);m('t-code-label',t.codeLabel);m('t-schedule-header',t.schedHeader);m('t-date-label',t.dateLabel);m('t-note-label',t.noteLabel);m('t-cta',t.cta);m('t-ready',t.ready);m('t-loading',t.loading);m('t-wait',t.wait);m('t-success',t.success);m('t-success-sub',t.successSub);m('t-c-code',t.cCode);m('t-c-status',t.cStatus);m('t-c-pending',t.cPending);m('t-c-source',t.cSource);m('t-c-solutions',t.cSolutions);m('t-view-history',t.viewHistory);m('t-back',t.back);m('t-err-title',t.errTitle);m('t-err-sub',t.errSub);m('t-retry',t.retry);
+    document.querySelector('.logo-slogan').textContent=t.slogan;
+}
+</script>
+</body>
+</html>

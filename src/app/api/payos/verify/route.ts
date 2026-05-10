@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PayOS, PaymentRequests } from '@payos/node';
+import { PaymentRequests } from '@payos/node';
+import payos from '@/lib/payos';
 import { getToken } from 'next-auth/jwt';
 import { db } from '@/lib/db';
 import { orders, transactions } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { logger } from '@/lib/logger';
 
 /**
- * GET /api/payos/verify?orderCode=xxx
+ * GET /api/payos/verify?transactionCode=xxx
  * Verifies payment status directly with PayOS.
  * Used by the checkout page to poll payment status and by the complete page.
  *
@@ -20,26 +22,20 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const orderCode = req.nextUrl.searchParams.get('orderCode');
-        if (!orderCode) {
-            return NextResponse.json({ error: 'Missing orderCode' }, { status: 400 });
+        const transactionCode = req.nextUrl.searchParams.get('transactionCode');
+        if (!transactionCode) {
+            return NextResponse.json({ error: 'Missing transactionCode' }, { status: 400 });
         }
 
-        const payosClient = new PayOS({
-            clientId: process.env.PAYOS_CLIENT_ID!,
-            apiKey: process.env.PAYOS_API_KEY!,
-            checksumKey: process.env.PAYOS_CHECKSUM_KEY!,
-        });
-
-        const paymentRequests = new PaymentRequests(payosClient);
-        const paymentInfo = await paymentRequests.get(orderCode);
+        const paymentRequests = new PaymentRequests(payos);
+        const paymentInfo = await paymentRequests.get(transactionCode);
 
         // Sync DB status when PayOS confirms PAID (backup for webhook)
         if (paymentInfo.status === 'PAID') {
             const [txn] = await db
                 .select({ id: transactions.id, orderId: transactions.orderId, status: transactions.status })
                 .from(transactions)
-                .where(eq(transactions.gatewayTransactionId, orderCode))
+                .where(eq(transactions.gatewayTransactionId, transactionCode))
                 .limit(1);
 
             if (txn && txn.status !== 'COMPLETED') {
@@ -56,7 +52,7 @@ export async function GET(req: NextRequest) {
             amount: paymentInfo.amount,
         });
     } catch (error) {
-        console.error('[PayOS Verify] Error:', error);
+        logger.error({ err: error }, '[PayOS Verify] Error');
         return NextResponse.json(
             { status: 'FAILED', error: 'Verification failed' },
             { status: 200 } // Return 200 so frontend can handle gracefully

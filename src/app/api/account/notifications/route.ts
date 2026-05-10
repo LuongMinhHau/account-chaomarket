@@ -5,6 +5,14 @@ import { db } from '@/lib/db';
 import { notifications } from '@/db/schema';
 import { eq, desc, inArray } from 'drizzle-orm';
 import { logger, sendToLogtail } from '@/lib/logger';
+import { z } from 'zod';
+
+const notificationUpdateSchema = z.union([
+    z.object({ markAllRead: z.literal(true) }),
+    z.object({ toggleStar: z.literal(true), notificationId: z.string(), isStarred: z.boolean().optional() }),
+    z.object({ ids: z.array(z.string()).min(1), isRead: z.boolean().optional() }),
+    z.object({ notificationId: z.string() }),
+]);
 
 export async function GET() {
     const session = await getServerSession(authOptions);
@@ -34,29 +42,33 @@ export async function PUT(request: NextRequest) {
     }
 
     try {
-        const body = await request.json();
+        const parsed = notificationUpdateSchema.safeParse(await request.json());
+        if (!parsed.success) {
+            return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
+        }
+        const body = parsed.data;
 
-        if (body.markAllRead) {
+        if ('markAllRead' in body) {
             // Mark all as read
             await db
                 .update(notifications)
                 .set({ isRead: true })
                 .where(eq(notifications.userId, session.user.id));
-        } else if (body.toggleStar && body.notificationId) {
+        } else if ('toggleStar' in body) {
             // Toggle star on a single notification
             const isStarred = body.isStarred !== undefined ? body.isStarred : false;
             await db
                 .update(notifications)
                 .set({ isStarred })
                 .where(eq(notifications.id, body.notificationId));
-        } else if (body.ids && Array.isArray(body.ids)) {
+        } else if ('ids' in body) {
             // Mark specific IDs as read/unread
             const isRead = body.isRead !== undefined ? body.isRead : true;
             await db
                 .update(notifications)
                 .set({ isRead })
                 .where(inArray(notifications.id, body.ids));
-        } else if (body.notificationId) {
+        } else if ('notificationId' in body) {
             // Legacy single-ID support
             await db
                 .update(notifications)

@@ -25,7 +25,7 @@ import { SearchForm } from './search-form';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { status } = useSession();
-    const { t, locale } = useI18n();
+    const { t } = useI18n();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -57,7 +57,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             },
             {
                 title: t('account.orderHistory'),
-                url: '/order-history',
+                url: '/transaction',
             },
             {
                 title: t('account.security'),

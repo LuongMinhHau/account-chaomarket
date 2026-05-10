@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import {
     Shield,
@@ -52,6 +52,27 @@ export default function PrivacyPage() {
     const [loading, setLoading] = useState(true);
     const [downloading, setDownloading] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+    const [_deleteError, setDeleteError] = useState('');
+
+    const handleDeleteAccount = async () => {
+        setDeleting(true);
+        setDeleteError('');
+        try {
+            const res = await fetch('/api/account/delete', { method: 'DELETE' });
+            if (res.ok) {
+                setShowDeleteDialog(false);
+                await signOut({ callbackUrl: '/auth/login' });
+            } else {
+                const data = await res.json();
+                setDeleteError(data.message || t('privacyPage.deleteAccount.error'));
+            }
+        } catch {
+            setDeleteError(t('privacyPage.deleteAccount.error'));
+        } finally {
+            setDeleting(false);
+        }
+    };
 
     useEffect(() => {
         if (status === 'unauthenticated') {
@@ -65,6 +86,7 @@ export default function PrivacyPage() {
                 .catch(() => {})
                 .finally(() => setLoading(false));
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [status]);
 
     const handleExportData = async () => {
@@ -280,17 +302,17 @@ export default function PrivacyPage() {
                         <Button
                             variant="ghost"
                             onClick={() => setShowDeleteDialog(false)}
+                            disabled={deleting}
                             className="bg-transparent text-neutral-500 border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-200 dark:hover:bg-neutral-800"
                         >
                             {t('privacyPage.deleteAccount.dialogCancel')}
                         </Button>
                         <Button
-                            onClick={() => {
-                                setShowDeleteDialog(false);
-                                // TODO: Implement account deletion request API
-                            }}
+                            onClick={handleDeleteAccount}
+                            disabled={deleting}
                             className="bg-red-600 text-white hover:bg-red-700 border-0"
                         >
+                            {deleting && <Loader2 className="size-4 animate-spin mr-2" />}
                             {t('privacyPage.deleteAccount.dialogConfirm')}
                         </Button>
                     </div>

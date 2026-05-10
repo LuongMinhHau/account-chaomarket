@@ -5,6 +5,7 @@ import {
 } from '@/components/ui/sidebar';
 import { User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 export function NavHead({
     headers: data,
@@ -20,7 +21,7 @@ export function NavHead({
 
     return (
         <SidebarGroup className="p-0">
-            <a
+            <Link
                 href="/"
                 className={cn(
                     'flex items-center gap-2 rounded-md transition-colors',
@@ -51,7 +52,7 @@ export function NavHead({
                         </span>
                     </div>
                 )}
-            </a>
+            </Link>
         </SidebarGroup>
     );
 }

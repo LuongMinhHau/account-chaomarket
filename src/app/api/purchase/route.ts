@@ -4,10 +4,14 @@ import { orders, orderProducts, transactions, products, users } from '@/db/schem
 import { db } from '@/lib/db';
 import { ApiResponse } from '@/types/base-response';
 import { eq } from 'drizzle-orm';
-import { generateOrderCode } from '@/lib/order-code';
-import { PayOS, PaymentRequests } from '@payos/node';
+import { generateTransactionCode } from '@/lib/transaction-code';
+import { PaymentRequests } from '@payos/node';
+import payos from '@/lib/payos';
+import { logger } from '@/lib/logger';
+import { env } from '@/lib/env';
 import { z } from 'zod';
 import QRCode from 'qrcode';
+import { checkRateLimit } from '@/lib/rate-limiter';
 
 const directPurchaseSchema = z.object({
     productId: z.string().uuid('Invalid product ID'),
@@ -27,6 +31,13 @@ export async function POST(req: NextRequest) {
             return NextResponse.json<ApiResponse>(
                 { success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized' } },
                 { status: 401 }
+            );
+        }
+
+        if (!checkRateLimit(`purchase:${token.id}`, 5, 60_000)) {
+            return NextResponse.json<ApiResponse>(
+                { success: false, error: { code: 'RATE_LIMITED', message: 'Too many requests' } },
+                { status: 429 }
             );
         }
         const userId = token.id as string;
@@ -81,8 +92,8 @@ export async function POST(req: NextRequest) {
 
         const totalAmount = price * 1; // quantity = 1 for direct purchase
 
-        // Generate order code
-        const orderCode = await generateOrderCode('other');
+        // Generate transaction code (used as PayOS orderCode)
+        const transactionCode = await generateTransactionCode('other');
 
         // Create order
         const [order] = await db.insert(orders).values({
@@ -115,31 +126,25 @@ export async function POST(req: NextRequest) {
             amount: String(totalAmount),
             currency: 'VND',
             status: 'PENDING',
-            gatewayTransactionId: String(orderCode),
+            gatewayTransactionId: String(transactionCode),
         }).returning();
 
         // Create PayOS payment link
-        const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:2000';
+        const baseUrl = env.NEXTAUTH_URL;
         const productName = ((product.name as { vi: string })?.vi || 'Product').slice(0, 25);
 
-        const payosClient = new PayOS({
-            clientId: process.env.PAYOS_CLIENT_ID!,
-            apiKey: process.env.PAYOS_API_KEY!,
-            checksumKey: process.env.PAYOS_CHECKSUM_KEY!,
-        });
-
-        const paymentRequests = new PaymentRequests(payosClient);
+        const paymentRequests = new PaymentRequests(payos);
         const paymentLink = await paymentRequests.create({
-            orderCode,
+            orderCode: transactionCode, // PayOS requires this field name
             amount: Math.round(totalAmount),
-            description: `Chao Market ${orderCode}`.slice(0, 25),
+            description: `Chao Market ${transactionCode}`.slice(0, 25),
             items: [{
                 name: productName,
                 quantity: 1,
                 price: Math.round(price),
             }],
-            returnUrl: `${baseUrl}/order/complete?orderCode=${orderCode}&status=success`,
-            cancelUrl: `${baseUrl}/order/complete?orderCode=${orderCode}&status=cancelled`,
+            returnUrl: `${baseUrl}/checkout/confirmation?transactionCode=${transactionCode}&status=success`,
+            cancelUrl: `${baseUrl}/checkout/confirmation?transactionCode=${transactionCode}&status=cancelled`,
             buyerName: user.name || 'Customer',
             buyerEmail: user.email,
             buyerPhone: user.phone || undefined,
@@ -147,7 +152,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json<ApiResponse<{
             checkoutUrl: string;
-            orderCode: number;
+            orderCode: number; // PayOS field name
             qrCode: string;
             bin: string;
             accountNumber: string;
@@ -166,7 +171,7 @@ export async function POST(req: NextRequest) {
                 success: true,
                 data: {
                     checkoutUrl: paymentLink.checkoutUrl,
-                    orderCode,
+                    orderCode: transactionCode, // PayOS field name
                     qrCode: await QRCode.toDataURL(paymentLink.qrCode, { width: 300, margin: 2 }),
                     bin: paymentLink.bin,
                     accountNumber: paymentLink.accountNumber,
@@ -184,7 +189,7 @@ export async function POST(req: NextRequest) {
             }
         );
     } catch (error) {
-        console.error('[Direct Purchase] Error:', error);
+        logger.error({ err: error }, '[Direct Purchase] Error');
         return NextResponse.json<ApiResponse>(
             { success: false, error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
             { status: 500 }

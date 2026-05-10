@@ -3,9 +3,10 @@ import { getToken } from 'next-auth/jwt';
 import { db } from '@/lib/db';
 import { orders, orderProducts, transactions, products } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { logger } from '@/lib/logger';
 
 /**
- * GET /api/entitlements/by-order?orderCode=xxx
+ * GET /api/entitlements/by-order?transactionCode=xxx
  * Returns product entitlements for a completed order.
  * Derives entitlement data from order_products + products.
  */
@@ -16,18 +17,18 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const orderCode = req.nextUrl.searchParams.get('orderCode');
-        if (!orderCode) {
+        const transactionCode = req.nextUrl.searchParams.get('transactionCode');
+        if (!transactionCode) {
             return NextResponse.json({ data: [] });
         }
 
-        // Find the transaction by gateway ID (orderCode) to get the orderId
+        // Find the transaction by gateway ID (transactionCode) to get the orderId
         const [txn] = await db
             .select({ orderId: transactions.orderId })
             .from(transactions)
             .where(
                 and(
-                    eq(transactions.gatewayTransactionId, orderCode),
+                    eq(transactions.gatewayTransactionId, transactionCode),
                     eq(transactions.userId, token.id as string)
                 )
             )
@@ -82,7 +83,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json({ data: entitlements });
     } catch (error) {
-        console.error('[Entitlements] Error:', error);
+        logger.error({ err: error }, '[Entitlements] Error');
         return NextResponse.json({ data: [] });
     }
 }

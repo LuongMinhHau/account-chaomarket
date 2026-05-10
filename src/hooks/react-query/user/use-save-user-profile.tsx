@@ -27,8 +27,8 @@ export const useSaveUserProfile = () => {
                 },
             });
         },
-        onError: error => {
-            console.error('Failed to save user profile:', error);
+        onError: () => {
+            // Error exposed via saveError property
         },
     });
 

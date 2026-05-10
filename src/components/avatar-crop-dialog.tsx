@@ -94,8 +94,8 @@ export default function AvatarCropDialog({
         try {
             const croppedFile = await getCroppedImg(imageSrc, croppedAreaPixels);
             onCropComplete(croppedFile);
-        } catch (err) {
-            console.error('Crop failed:', err);
+        } catch {
+            // Crop failure handled by UI state reset
         } finally {
             setIsCropping(false);
         }

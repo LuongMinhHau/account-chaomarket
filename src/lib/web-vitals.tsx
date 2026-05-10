@@ -51,7 +51,8 @@ async function sendToAnalytics(metric: Metric) {
 
     // Log in development
     if (process.env.NODE_ENV === 'development') {
-        console.log('[Web Vital]', payload.name, payload.value.toFixed(2), `(${payload.rating})`);
+        // eslint-disable-next-line no-console -- dev-only web vitals debugging
+        console.debug('[Web Vital]', payload.name, payload.value.toFixed(2), `(${payload.rating})`);
     }
 
     // Send to Sentry if available

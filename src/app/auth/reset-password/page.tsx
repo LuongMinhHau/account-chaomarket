@@ -7,7 +7,6 @@ import ResetPasswordEmailStep from '@/app/auth/reset-password/components/email-s
 import ResetPasswordOtpStep from '@/app/auth/reset-password/components/otp-step';
 import ResetPasswordNewPasswordStep from '@/app/auth/reset-password/components/new-password';
 import CompletionStep from '@/app/auth/reset-password/components/complete-step';
-import { cn } from '@/lib/utils';
 import { useI18n } from '@/context/i18n/context';
 
 export default function ResetPasswordPageWrapper() {

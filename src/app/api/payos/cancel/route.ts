@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PayOS, PaymentRequests } from '@payos/node';
+import { PaymentRequests } from '@payos/node';
+import payos from '@/lib/payos';
 import { getToken } from 'next-auth/jwt';
 import { db } from '@/lib/db';
 import { orders, transactions } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { logger } from '@/lib/logger';
 
 /**
  * POST /api/payos/cancel
@@ -17,18 +19,18 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { orderCode } = await req.json();
-        if (!orderCode) {
-            return NextResponse.json({ error: 'Missing orderCode' }, { status: 400 });
+        const { transactionCode } = await req.json();
+        if (!transactionCode) {
+            return NextResponse.json({ error: 'Missing transactionCode' }, { status: 400 });
         }
 
-        const orderCodeStr = String(orderCode);
+        const transactionCodeStr = String(transactionCode);
 
         // Update local DB: transaction status → CANCELLED
         const [txn] = await db
             .select({ id: transactions.id, orderId: transactions.orderId })
             .from(transactions)
-            .where(eq(transactions.gatewayTransactionId, orderCodeStr))
+            .where(eq(transactions.gatewayTransactionId, transactionCodeStr))
             .limit(1);
 
         if (txn) {
@@ -47,20 +49,16 @@ export async function POST(req: NextRequest) {
 
         // Try to cancel on PayOS (best effort — may already be cancelled)
         try {
-            const payosClient = new PayOS({
-                clientId: process.env.PAYOS_CLIENT_ID!,
-                apiKey: process.env.PAYOS_API_KEY!,
-                checksumKey: process.env.PAYOS_CHECKSUM_KEY!,
-            });
-            const paymentRequests = new PaymentRequests(payosClient);
-            await paymentRequests.cancel(orderCodeStr, 'User cancelled');
-        } catch {
+            const paymentRequests = new PaymentRequests(payos);
+            await paymentRequests.cancel(transactionCodeStr, 'User cancelled');
+        } catch (err) {
             // PayOS cancel may fail if already cancelled — that's OK
+            logger.warn({ err, transactionCode: transactionCodeStr }, '[PayOS Cancel] Best-effort cancel failed');
         }
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error('[PayOS Cancel] Error:', error);
+        logger.error({ err: error }, '[PayOS Cancel] Error');
         return NextResponse.json(
             { success: false, error: 'Cancel failed' },
             { status: 500 }

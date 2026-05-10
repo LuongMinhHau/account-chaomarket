@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any -- TipTap editor API uses dynamic chain methods */
 
 import * as React from 'react';
 import { isNodeSelection, type Editor } from '@tiptap/react';
@@ -170,8 +171,8 @@ export function toggleHighlight(
         }
 
         editor.chain().setMeta('hideDragHandle', true).run();
-    } catch (error) {
-        console.error('Failed to apply highlight:', error);
+    } catch {
+        // TipTap command failed — silently ignore
     }
 }
 

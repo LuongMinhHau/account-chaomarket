@@ -5,6 +5,12 @@ import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
 import { logger, sendToLogtail } from '@/lib/logger';
+import { z } from 'zod';
+
+const verifyPasswordSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(1),
+});
 
 /**
  * POST /api/auth/verify-password
@@ -16,11 +22,11 @@ export async function POST(request: NextRequest) {
     if (rateLimitResponse) return rateLimitResponse;
 
     try {
-        const { email, password } = await request.json();
-
-        if (!email || !password) {
+        const parsed = verifyPasswordSchema.safeParse(await request.json());
+        if (!parsed.success) {
             return NextResponse.json({ valid: false }, { status: 400 });
         }
+        const { email, password } = parsed.data;
 
         const [user] = await db
             .select({ id: users.id, password: users.password })

@@ -6,6 +6,7 @@ import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { CustomAdapter } from './next-auth.adapter';
+import { env } from '@/lib/env';
 
 // Augment NextAuth types for type safety
 declare module 'next-auth' {
@@ -31,8 +32,8 @@ export const authOptions: NextAuthOptions = {
     adapter: CustomAdapter,
     providers: [
         GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID!,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            clientId: env.GOOGLE_CLIENT_ID,
+            clientSecret: env.GOOGLE_CLIENT_SECRET,
             profile(profile) {
                 return {
                     ...profile,
@@ -120,7 +121,9 @@ export const authOptions: NextAuthOptions = {
                 ) {
                     return url;
                 }
-            } catch {}
+            } catch {
+                // Invalid URL — fall through to return baseUrl
+            }
             return baseUrl;
         },
         async jwt({ token, user, trigger }) {

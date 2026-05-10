@@ -101,6 +101,7 @@ export default function OtpVerificationForm({
         } finally {
             setLoading(false);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [email, canResend, onResendSuccess]);
 
     return (

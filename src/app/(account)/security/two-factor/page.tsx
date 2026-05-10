@@ -63,6 +63,7 @@ export default function TwoFactorPage() {
                 .catch(() => {})
                 .finally(() => setLoading(false));
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [status]);
 
     const startSetup = async () => {

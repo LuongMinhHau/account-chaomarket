@@ -27,13 +27,13 @@ export const SEARCHABLE_CONTENT: SearchableItem[] = [
         keywords: ['profile', 'hồ sơ', 'personal', 'cá nhân', 'info', 'thông tin', 'avatar', 'ảnh đại diện'],
     },
 
-    // Lịch Sử Đơn Hàng
+    // Lịch Sử Giao Dịch
     {
-        title: 'Order History',
+        title: 'Transaction History',
         titleKey: 'account.orderHistory',
-        url: '/order-history',
+        url: '/transaction',
         category: 'page',
-        keywords: ['order', 'đơn hàng', 'history', 'lịch sử', 'purchase', 'mua'],
+        keywords: ['transaction', 'giao dịch', 'order', 'đơn hàng', 'history', 'lịch sử', 'purchase', 'mua'],
     },
 
     // Bảo Mật

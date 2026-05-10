@@ -3,6 +3,9 @@
  * Uses REST API v3 to send transactional emails.
  */
 
+import { env } from '@/lib/env';
+import { logger } from '@/lib/logger';
+
 export type EmailSender = 'security' | 'noreply';
 
 const SENDERS: Record<EmailSender, { name: string; email: string; replyTo: string }> = {
@@ -31,7 +34,7 @@ export async function sendEmail({
     htmlContent,
     sender: senderType = 'security',
 }: SendEmailOptions): Promise<{ messageId?: string }> {
-    const apiKey = process.env.BREVO_API_KEY;
+    const apiKey = env.BREVO_API_KEY;
 
     if (!apiKey) {
         throw new Error('BREVO_API_KEY is not configured in environment variables');
@@ -58,7 +61,7 @@ export async function sendEmail({
     const data = await response.json();
 
     if (!response.ok) {
-        console.error('Brevo API error:', data);
+        logger.error({ data, status: response.status }, 'Brevo API error');
         throw new Error(data.message || `Brevo API error: ${response.status}`);
     }
 

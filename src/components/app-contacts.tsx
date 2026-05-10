@@ -7,7 +7,12 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover';
 import { useState, useEffect, useMemo } from 'react';
-import { Speech, MessageCircle, Send as SendIcon } from 'lucide-react';
+import { Speech } from 'lucide-react';
+import Image, { StaticImageData } from 'next/image';
+import MessengerImg from '@/../public/img/messenger.png';
+import ZaloImg from '@/../public/img/zalo.png';
+import TelegramImg from '@/../public/img/telegram.png';
+import WhatsAppImg from '@/../public/img/whats-app.png';
 import {
     Tooltip,
     TooltipContent,
@@ -18,19 +23,12 @@ import Link from 'next/link';
 import { useI18n } from '@/context/i18n/context';
 import ScrollToTop from '@/components/app-scroll-to-top';
 
-// Platform icon components
-function ZaloIcon({ size = 20 }: { size?: number }) {
-    return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.568 8.16c-.18-.424-.45-.796-.78-1.108-.332-.31-.72-.556-1.14-.72a3.58 3.58 0 0 0-1.368-.264H8.4c-.12 0-.216.096-.216.216v1.296c0 .12.096.216.216.216h5.88c.288 0 .564.06.816.18.252.12.468.288.648.504.18.216.324.468.42.744.096.276.144.576.144.888v2.376c0 .312-.048.612-.144.888a2.364 2.364 0 0 1-.42.744 2.04 2.04 0 0 1-.648.504 1.74 1.74 0 0 1-.816.18H9.12l-2.568 2.28V14.4H8.4v-1.728H14.28c.48 0 .948-.096 1.368-.264.42-.168.804-.408 1.14-.72.332-.312.6-.684.78-1.108.18-.424.272-.888.272-1.368v-2.376c0-.48-.084-.948-.272-1.368z"/>
-        </svg>
-    );
-}
-
-const PLATFORM_ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
-    messenger: MessageCircle,
-    zalo: ZaloIcon,
-    telegram: SendIcon,
+// Default platform images
+const PLATFORM_IMAGES: Record<string, StaticImageData> = {
+    messenger: MessengerImg,
+    zalo: ZaloImg,
+    telegram: TelegramImg,
+    whatsapp: WhatsAppImg,
 };
 
 const PLATFORM_COLORS: Record<string, string> = {
@@ -87,7 +85,7 @@ export default function ContactButton({ settings = {} }: ContactButtonProps) {
             const platform = settings[`quickchat_${n}_platform`] || fallback?.platform || 'messenger';
             const visible = settings[`quickchat_${n}_visible`] ?? 'active';
             const customIcon = settings[`quickchat_${n}_icon`] || '';
-            const IconComp = PLATFORM_ICONS[platform] || MessageCircle;
+            const defaultImg = PLATFORM_IMAGES[platform];
             const color = PLATFORM_COLORS[platform] || '#2962ff';
 
             return {
@@ -102,8 +100,16 @@ export default function ContactButton({ settings = {} }: ContactButtonProps) {
                         height={32}
                         className="object-contain size-8 rounded-full"
                     />
+                ) : defaultImg ? (
+                    <Image
+                        src={defaultImg}
+                        alt={platform}
+                        width={50}
+                        height={50}
+                        className="object-contain size-8"
+                    />
                 ) : (
-                    <IconComp size={32} />
+                    <span className="size-8 rounded-full bg-white/10 flex items-center justify-center text-[10px] capitalize">{platform.slice(0, 2)}</span>
                 ),
                 color,
                 visible,

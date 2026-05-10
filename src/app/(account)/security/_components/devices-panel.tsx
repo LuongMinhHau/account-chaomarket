@@ -90,7 +90,9 @@ export default function DevicesPanel({ auditLogs, getActionLabel, formatDate }: 
                 setRevokeTarget(null);
                 setExpandedId(null);
             }
-        } catch {} finally { setRevoking(false); }
+        } catch {
+            // Revoke failed — UI resets via finally block
+        } finally { setRevoking(false); }
     };
 
     if (loading) {

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createHash } from 'crypto';
 import { db } from '@/lib/db';
 import { users, otpCodes } from '@/db/schema';
 import { eq, and, gt } from 'drizzle-orm';
@@ -8,10 +7,14 @@ import { OTP_TYPE } from '@/app/api/auth/reset-password/constants';
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
 import { logAuditEvent } from '@/lib/audit-logger';
 import { logger, sendToLogtail } from '@/lib/logger';
+import { z } from 'zod';
 
-function hashOTP(otp: string): string {
-    return createHash('sha256').update(otp).digest('hex');
-}
+const verifyOtpSchema = z.object({
+    email: z.string().email(),
+    otp: z.string().min(1),
+});
+
+import { hashOTP } from '@/lib/otp';
 
 // Response types
 export interface VerifyResetPasswordData {
@@ -24,14 +27,14 @@ export async function POST(request: NextRequest) {
     if (rateLimitResponse) return rateLimitResponse;
 
     try {
-        const { email, otp } = await request.json();
-
-        if (!email || !otp) {
+        const parsed = verifyOtpSchema.safeParse(await request.json());
+        if (!parsed.success) {
             return NextResponse.json<BaseResponse>(
                 { message: 'Email and OTP are required' },
                 { status: 400 }
             );
         }
+        const { email, otp } = parsed.data;
 
         // Find user
         const [user] = await db
