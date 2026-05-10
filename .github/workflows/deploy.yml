@@ -79,4 +79,4 @@ jobs:
               --restart unless-stopped \
               ${{ env.IMAGE_NAME }}:latest
             sleep 3
-            curl -sf http://localhost:3002/health && echo "✅ Deployed successfully" || echo "❌ Health check failed"
+            curl -sf http://localhost:3002/api/health && echo "✅ Deployed successfully" || echo "❌ Health check failed"
